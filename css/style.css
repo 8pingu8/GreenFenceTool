@@ -1,0 +1,1183 @@
+* {
+    box-sizing: border-box;
+  }
+  :root {
+    --primary-green: #2d5016;
+    --primary-green-light: #3f6e2c;
+    --primary-green-dark: #1f3a0f;
+    --accent-green: #85ab5c;
+    --accent-green-light: #a5c97c;
+    --background-gradient: linear-gradient(135deg, #85ab5c 0%, #6b8e4a 100%);
+    --card-background: #ffffff;
+    --text-primary: #1a1a1a;
+    --text-secondary: #4a4a4a;
+    --border-color: #e0e0e0;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--background-gradient);
+    min-height: 100vh;
+    color: var(--text-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .form-section {
+    margin: 20px 10px;
+    max-width: 900px;
+    background: var(--card-background);
+    padding: 30px 20px;
+    border-radius: 16px;
+    position: relative;
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(10px);
+    transition: var(--transition);
+    animation: fadeInUp 0.6s ease-out;
+  }
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .form-section:hover {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  }
+  @media (min-width: 768px) {
+    .form-section {
+      margin: 30px auto;
+      padding: 40px;
+    }
+  }
+  label {
+    display: block;
+    margin: 20px 0 8px 0;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    font-family: 'Poppins', sans-serif;
+  }
+  label:first-child {
+    margin-top: 0;
+  }
+  input[type="number"],
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  select {
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    margin: 5px 0 10px 0;
+    font-size: 16px;
+    font-family: 'Inter', sans-serif;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    background: #fafafa;
+    color: var(--text-primary);
+    transition: var(--transition);
+    outline: none;
+  }
+  input[type="number"]:focus,
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="tel"]:focus,
+  select:focus {
+    border-color: var(--accent-green);
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(133, 171, 92, 0.1);
+    transform: translateY(-1px);
+  }
+  input[type="number"]:hover,
+  input[type="text"]:hover,
+  input[type="email"]:hover,
+  input[type="tel"]:hover,
+  select:hover {
+    border-color: var(--accent-green-light);
+    background: #ffffff;
+  }
+  select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232d5016' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 40px;
+  }
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px 24px;
+    cursor: pointer;
+    margin-top: 20px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-light) 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.5px;
+    transition: var(--transition);
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+  button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+  button:hover::before {
+    left: 100%;
+  }
+  button:hover {
+    background: linear-gradient(135deg, var(--primary-green-light) 0%, var(--primary-green) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(45, 80, 22, 0.4);
+  }
+  button:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+  }
+  @media (min-width: 768px) {
+    button {
+      width: auto;
+      min-width: 180px;
+      padding: 16px 32px;
+    }
+  }
+  .mandatory {
+    color: var(--text-primary);
+  }
+  .header-logo {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+  }
+  .header-logo img {
+    max-width: 100%;
+    max-height: 80px;
+    height: auto;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    transition: var(--transition);
+  }
+  .header-logo img:hover {
+    transform: scale(1.02);
+  }
+  @media (min-width: 768px) {
+    .header-logo img {
+      max-height: 120px;
+    }
+  }
+  .map-container {
+    height: 300px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 20px;
+    width: 100%;
+    box-shadow: var(--shadow-md);
+    border: 3px solid var(--border-color);
+    transition: var(--transition);
+  }
+  .map-container:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent-green-light);
+  }
+  @media (min-width: 768px) {
+    .map-container {
+      height: 500px;
+    }
+  }
+  /* Hide map controls during PDF capture so screenshot is clean */
+  #map.map-capturing .leaflet-control {
+    display: none !important;
+  }
+  input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    accent-color: var(--accent-green);
+    margin-right: 10px;
+    margin-top: 0;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+  label[for="plintbetong"] {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+    cursor: pointer;
+    font-weight: 500;
+    text-transform: none;
+    font-size: 16px;
+    color: var(--text-primary);
+    padding: 12px;
+    border-radius: 8px;
+    transition: var(--transition);
+  }
+  label[for="plintbetong"]:hover {
+    background: rgba(133, 171, 92, 0.1);
+  }
+  /* Gate input for animal fences */
+  #gate-input-container {
+    display: none;
+    margin: 20px 0;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(133, 171, 92, 0.1) 0%, rgba(133, 171, 92, 0.05) 100%);
+    border-radius: 10px;
+    border-left: 4px solid var(--accent-green);
+  }
+  #gate-input-container.visible {
+    display: block;
+    animation: fadeInUp 0.3s ease-out;
+  }
+  #gate-input-container label {
+    margin-top: 0;
+  }
+  #gate-input-container .gate-info {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    font-style: italic;
+  }
+
+  /* Electrify option – separate card for animal fence */
+  #electrify-container.electrify-card {
+    display: none;
+    margin: 16px 0;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.12) 0%, rgba(255, 152, 0, 0.08) 100%);
+    border-radius: 10px;
+    border-left: 4px solid #ff9800;
+  }
+  #electrify-container.electrify-card.visible {
+    display: block;
+    animation: fadeInUp 0.3s ease-out;
+  }
+  #electrify-container .electrify-card-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #electrify-container .electrify-checkbox {
+    transform: scale(1.2);
+    accent-color: #f57c00;
+  }
+  #electrify-container .electrify-label {
+    cursor: pointer;
+    white-space: nowrap;
+    margin: 0;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  #electrify-container .electrify-label .fa-bolt {
+    color: #f57c00;
+    margin-right: 6px;
+  }
+
+  .invoice {
+    width: 210mm;
+    max-width: 100%;
+    min-height: auto;
+    padding: 16px;
+    background: var(--card-background);
+    margin: 24px;
+    box-sizing: border-box;
+    font-size: 11px;
+    display: block;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+  }
+  @media (min-width: 768px) {
+    .invoice {
+      padding: 8mm 15mm 12mm;
+      font-size: 12px;
+      margin: 32px;
+    }
+  }
+  .invoice.pdf-exporting {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    box-sizing: border-box !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+  .invoice.pdf-exporting .page {
+    width: 210mm !important;
+    max-width: 210mm !important;
+    min-height: auto !important;
+    aspect-ratio: auto !important;
+    margin: 0 !important;
+    padding: 15mm 15mm !important;
+    border: none !important;
+    border-radius: 0 !important;
+    page-break-after: always;
+    page-break-inside: avoid;
+  }
+  .invoice.pdf-exporting .page:last-child {
+    page-break-after: auto !important;
+  }
+  .invoice.pdf-exporting .invoice-header {
+    margin-bottom: 3mm !important;
+  }
+  .invoice.pdf-exporting .invoice-header-right .title {
+    font-size: 18px !important;
+  }
+  .invoice.pdf-exporting .two-columns {
+    margin-top: 2mm !important;
+    gap: 4mm !important;
+  }
+  .invoice.pdf-exporting .material-table {
+    margin-top: 3mm !important;
+    font-size: 10px !important;
+  }
+  .invoice.pdf-exporting .material-table th,
+  .invoice.pdf-exporting .material-table td {
+    padding: 3px 6px !important;
+  }
+  .invoice.pdf-exporting .totals {
+    margin-top: 3mm !important;
+    font-size: 11px !important;
+  }
+  .invoice.pdf-exporting .bottom-info {
+    margin-top: 2mm !important;
+    padding: 2mm 0 !important;
+    font-size: 10px !important;
+  }
+  .invoice.pdf-exporting .invoice-footer {
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    margin-top: 6mm !important;
+  }
+  .invoice.pdf-exporting .footer-line-top,
+  .invoice.pdf-exporting .footer-line-bottom {
+    margin: 2px 0 !important;
+  }
+  .invoice-header {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+  }
+  @media (min-width: 768px) {
+    .invoice-header {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10mm;
+    }
+  }
+  .invoice-header-left img {
+    max-width: 150px;
+    max-height: 80px;
+    width: auto;
+    height: auto;
+  }
+  @media (min-width: 768px) {
+    .invoice-header-left img {
+      max-height: 100px;
+    }
+  }
+  .invoice-header-right {
+    flex-grow: 1;
+    text-align: center;
+    width: 100%;
+  }
+  @media (min-width: 768px) {
+    .invoice-header-right {
+      text-align: right;
+    }
+  }
+  .invoice-header-right .title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: var(--primary-green);
+    font-family: 'Poppins', sans-serif;
+  }
+  @media (min-width: 768px) {
+    .invoice-header-right .title {
+      font-size: 24px;
+      margin-bottom: 3mm;
+    }
+  }
+  .invoice-header-right .sida {
+    font-size: 10px;
+    color: var(--text-secondary);
+  }
+  .invoice-header-right .giltig {
+    line-height: 1.6;
+    margin-top: 5px;
+    color: var(--text-secondary);
+  }
+  .two-columns {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+  }
+  @media (min-width: 768px) {
+    .two-columns {
+      flex-direction: row;
+      justify-content: space-between;
+      margin-top: 2mm;
+    }
+  }
+  .customer-data {
+    width: 100%;
+    text-align: left;
+  }
+  @media (min-width: 768px) {
+    .customer-data {
+      width: 48%;
+    }
+  }
+  .invoice-block-label {
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--primary-green);
+    font-family: 'Poppins', sans-serif;
+    margin-bottom: 6px;
+  }
+  @media (min-width: 768px) {
+    .invoice-block-label {
+      font-size: 12px;
+    }
+  }
+  .invoice-customer-content {
+    font-size: 11px;
+    line-height: 1.55;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+  }
+  @media (min-width: 768px) {
+    .invoice-customer-content {
+      font-size: 12px;
+    }
+  }
+  .invoice-map-block {
+    margin-top: 4mm;
+    margin-bottom: 4mm;
+    break-inside: avoid;
+  }
+  .invoice-map-block .invoice-block-label {
+    margin-bottom: 3px;
+  }
+  .invoice-map-screenshot {
+    display: block;
+    max-width: 100%;
+    max-height: 55mm;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background: #f5f5f5;
+  }
+  .offer-data {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  @media (min-width: 768px) {
+    .offer-data {
+      width: 48%;
+      justify-content: flex-end;
+    }
+  }
+  .offer-column {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    margin-left: 10px;
+  }
+  .offer-column span {
+    line-height: 1.6;
+  }
+  .material-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 10px;
+    overflow-x: auto;
+    display: block;
+  }
+  @media (min-width: 768px) {
+    .material-table {
+      margin-top: 10mm;
+      font-size: 12px;
+      display: table;
+    }
+  }
+  .material-table th,
+  .material-table td {
+    border: 1px solid var(--border-color);
+    padding: 8px 10px;
+    text-align: left;
+  }
+  @media (min-width: 768px) {
+    .material-table th,
+    .material-table td {
+      padding: 6px 10px;
+    }
+  }
+  .material-table th {
+    background: linear-gradient(135deg, rgba(133, 171, 92, 0.12) 0%, rgba(133, 171, 92, 0.06) 100%);
+    color: var(--primary-green);
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    white-space: nowrap;
+  }
+  .totals {
+    text-align: right;
+    font-weight: 700;
+    margin-top: 8px;
+    line-height: 1.7;
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+  @media (min-width: 768px) {
+    .totals {
+      margin-top: 6mm;
+      font-size: 14px;
+    }
+  }
+  .bottom-info {
+    margin-top: 12px;
+    padding: 12px 0;
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  @media (min-width: 768px) {
+    .bottom-info {
+      margin-top: 6mm;
+      font-size: 12px;
+    }
+  }
+  .bottom-info a {
+    color: var(--accent-green);
+    font-weight: 600;
+  }
+  .footer-info {
+    line-height: 1.5;
+    color: var(--text-secondary);
+    font-size: 11px;
+  }
+  .footer-info a {
+    color: var(--accent-green);
+  }
+  .footer-line-top,
+  .footer-line-bottom {
+    border-top: 1px solid var(--border-color);
+    margin: 5px 0;
+  }
+  .hidden {
+    display: none;
+  }
+  .customer-step-heading {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--primary-green);
+    font-family: 'Poppins', sans-serif;
+  }
+  .customer-step-intro {
+    margin: 0 0 20px 0;
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .customer-delivery-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0 20px 0;
+  }
+  .customer-delivery-wrap input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--primary-green);
+  }
+  .customer-delivery-label {
+    margin: 0;
+    text-transform: none;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .customer-next-info {
+    margin: 20px 0 24px 0;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(133, 171, 92, 0.1) 0%, rgba(133, 171, 92, 0.05) 100%);
+    border-radius: 12px;
+    border-left: 4px solid var(--accent-green);
+  }
+  .customer-next-info p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+  .customer-step-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .customer-step-buttons .button-secondary {
+    background: #f0f0f0;
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+  }
+  .customer-step-buttons .button-secondary:hover {
+    background: #e5e5e5;
+    border-color: var(--text-secondary);
+  }
+  .form-section p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin: 0 0 20px 0;
+    font-weight: 400;
+  }
+  .form-section p[style*="font-weight: bold"] {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(133, 171, 92, 0.15) 0%, rgba(133, 171, 92, 0.05) 100%);
+    border-radius: 10px;
+    border-left: 4px solid var(--accent-green);
+    font-family: 'Poppins', sans-serif;
+  }
+  /* Fence Type Selector */
+  .fence-type-selector {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    border: none;
+    padding: 0;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+    min-inline-size: unset;
+  }
+  .fence-type-selector legend {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    font-family: 'Poppins', sans-serif;
+    margin: 0 0 8px 0;
+    padding: 0;
+    float: none;
+  }
+  .fence-type-btn {
+    flex: 1;
+    min-width: 200px;
+    padding: 20px 16px;
+    border: 3px solid var(--border-color);
+    border-radius: 12px;
+    background: #fafafa;
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+  }
+  button.fence-type-btn {
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .fence-type-btn:hover {
+    border-color: var(--accent-green-light);
+    background: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .fence-type-btn:focus {
+    outline: none;
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 4px rgba(133, 171, 92, 0.2), var(--shadow-md);
+  }
+  .fence-type-btn.selected {
+    border-color: var(--accent-green);
+    background: linear-gradient(135deg, rgba(133, 171, 92, 0.15) 0%, rgba(133, 171, 92, 0.05) 100%);
+    box-shadow: 0 0 0 4px rgba(133, 171, 92, 0.1), var(--shadow-md);
+    transform: translateY(-2px);
+  }
+  .fence-type-btn.selected:focus {
+    box-shadow: 0 0 0 4px rgba(133, 171, 92, 0.2), var(--shadow-md);
+  }
+  .fence-type-btn.selected::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-green-light) 100%);
+  }
+  .fence-type-icon {
+    font-size: 32px;
+    color: var(--primary-green);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .fence-type-icon .fence-type-img {
+    width: auto;
+    height: 48px;
+    object-fit: contain;
+    display: block;
+  }
+  .fence-type-btn.selected .fence-type-icon {
+    color: var(--accent-green);
+  }
+  .fence-type-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text-primary);
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+  }
+  .fence-type-btn.selected .fence-type-title {
+    color: var(--primary-green);
+  }
+  .fence-type-animals {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 4px;
+  }
+  .fence-type-btn.selected .fence-type-animals {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .fence-type-animals i {
+    font-size: 14px;
+  }
+  @media (max-width: 600px) {
+    .fence-type-btn {
+      min-width: 100%;
+    }
+  }
+  /* Leaflet Control Styling */
+  .leaflet-control {
+    border-radius: 8px;
+    box-shadow: var(--shadow-md) !important;
+    border: none !important;
+  }
+  .leaflet-bar {
+    border-radius: 8px !important;
+    overflow: hidden;
+  }
+  .leaflet-bar a {
+    background-color: white !important;
+    color: var(--primary-green) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    transition: var(--transition) !important;
+  }
+  .leaflet-bar a:hover {
+    background-color: var(--accent-green-light) !important;
+    color: white !important;
+  }
+  /* Map instructions */
+  .map-instructions {
+    margin: 0 0 16px 0;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(133, 171, 92, 0.08) 0%, rgba(133, 171, 92, 0.03) 100%);
+    border-radius: 12px;
+    border-left: 4px solid var(--accent-green);
+  }
+  .map-instructions-heading {
+    margin: 0 0 6px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary-green);
+    font-family: 'Poppins', sans-serif;
+  }
+  .map-instructions-intro {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+  .map-instructions-list {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 14px;
+    color: var(--text-primary);
+    line-height: 1.65;
+  }
+  .map-instructions-list li {
+    margin-bottom: 6px;
+  }
+  .map-instructions-list li:last-child {
+    margin-bottom: 0;
+  }
+  /* Geocoder search – match site style, no full green on hover */
+  .leaflet-control-geocoder {
+    border-radius: 10px !important;
+    box-shadow: var(--shadow-md) !important;
+    border: 2px solid var(--border-color) !important;
+    background: var(--card-background) !important;
+    padding: 6px 10px !important;
+    min-width: auto !important;
+    min-height: auto !important;
+    transition: var(--transition);
+  }
+  .leaflet-control-geocoder:hover {
+    border-color: var(--accent-green) !important;
+    background: var(--card-background) !important;
+    box-shadow: 0 0 0 2px rgba(133, 171, 92, 0.15) !important;
+  }
+  .leaflet-control-geocoder-expanded {
+    padding: 8px 12px 10px !important;
+  }
+  .leaflet-control-geocoder > a {
+    border: none !important;
+  }
+  .leaflet-control-geocoder-icon {
+    width: 30px !important;
+    min-width: 30px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
+    background-color: var(--card-background) !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232d5016' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 16px 16px !important;
+    border: 2px solid var(--border-color) !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+  .leaflet-control-geocoder-icon:hover {
+    background-color: var(--accent-green-light) !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") !important;
+    border-color: var(--accent-green) !important;
+  }
+  .leaflet-control-geocoder-form {
+    vertical-align: middle;
+    margin-left: 8px !important;
+  }
+  .leaflet-control-geocoder-form input {
+    font-size: 14px !important;
+    padding: 10px 14px !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    background: #fafafa !important;
+    color: var(--text-primary) !important;
+    width: 220px !important;
+    max-width: 100%;
+    font-family: 'Inter', sans-serif !important;
+    transition: var(--transition);
+  }
+  .leaflet-control-geocoder-form input::placeholder {
+    color: var(--text-secondary);
+  }
+  .leaflet-control-geocoder-form input:focus {
+    outline: none !important;
+    border-color: var(--accent-green) !important;
+    background: white !important;
+    box-shadow: 0 0 0 3px rgba(133, 171, 92, 0.12) !important;
+  }
+  .leaflet-control-geocoder-alternatives {
+    width: 100% !important;
+    max-width: 280px;
+    margin-top: 8px !important;
+    border-radius: 8px !important;
+    overflow: hidden;
+    box-shadow: var(--shadow-md) !important;
+    border: 2px solid var(--border-color) !important;
+    background: var(--card-background) !important;
+  }
+  .leaflet-control-geocoder-alternatives li {
+    padding: 10px 14px !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    font-size: 14px;
+    color: var(--text-primary);
+    transition: var(--transition);
+  }
+  .leaflet-control-geocoder-alternatives li:last-child {
+    border-bottom: none !important;
+  }
+  .leaflet-control-geocoder-alternatives li:hover,
+  .leaflet-control-geocoder-selected {
+    background: rgba(133, 171, 92, 0.12) !important;
+  }
+  .leaflet-control-geocoder-alternatives li a {
+    color: inherit;
+  }
+  .leaflet-control-geocoder-address-context {
+    color: var(--text-secondary) !important;
+  }
+  .leaflet-control-geocoder-error {
+    color: var(--text-secondary);
+    margin-left: 0 !important;
+    margin-top: 6px !important;
+  }
+  .footer-text {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    border-top: 2px solid var(--border-color);
+    font-family: 'Inter', sans-serif;
+  }
+  #polyline-summary {
+    margin: 20px 0;
+    padding: 0;
+  }
+  .polyline-info {
+    margin: 12px 0;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(133, 171, 92, 0.1) 0%, rgba(133, 171, 92, 0.05) 100%);
+    border-radius: 10px;
+    font-size: 14px;
+    border-left: 4px solid var(--accent-green);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+  }
+  .polyline-info:hover {
+    transform: translateX(4px);
+    box-shadow: var(--shadow-md);
+  }
+  .page {
+    width: 100%;
+    max-width: 210mm;
+    min-height: auto;
+    aspect-ratio: 210 / 297;
+    box-sizing: border-box;
+    background: var(--card-background);
+    margin: 0 auto 14px auto;
+    position: relative;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    padding: 14px;
+  }
+  @media (min-width: 768px) {
+    .page {
+      padding: 4mm 15mm;
+      margin-bottom: 10mm;
+    }
+  }
+  .page-break {
+    page-break-before: always;
+  }
+  /* PDF export: in-viewport so html2canvas can render (invisible to user) */
+  .pdf-export-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 210mm;
+    max-width: 210mm;
+    background: #fff;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
+    overflow: visible;
+  }
+  .pdf-export-container .page {
+    width: 210mm !important;
+    max-width: 210mm !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 10mm 15mm !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    page-break-after: always;
+    page-break-inside: avoid;
+  }
+  .pdf-export-container .page:last-child {
+    page-break-after: auto;
+  }
+  .invoice,
+  .page {
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .invoice-footer {
+    position: relative;
+    left: 0;
+    right: 0;
+    margin-top: 20px;
+    bottom: auto;
+    text-align: center;
+    font-size: 11px;
+    color: #333;
+  }
+  @media (min-width: 768px) {
+    .invoice-footer {
+      margin-top: 10mm;
+    }
+  }
+  .invoice-download-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto 16px;
+    max-width: 210mm;
+  }
+  @media (min-width: 768px) {
+    .invoice-download-wrap {
+      margin: 8mm auto 6mm;
+    }
+  }
+  .invoice button.email-button {
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    border-radius: 10px;
+    border: 2px solid var(--primary-green);
+    background: transparent;
+    color: var(--primary-green);
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .invoice button.email-button:hover {
+    background: var(--accent-green-light);
+    color: white;
+    border-color: var(--accent-green);
+    transform: translateY(-2px);
+  }
+  .invoice button.email-button::before {
+    display: none;
+  }
+  .invoice-nav-wrap {
+    text-align: center;
+    margin: 0 auto 24px;
+    max-width: 210mm;
+  }
+  .invoice-back-btn {
+    padding: 12px 20px;
+    font-size: 16px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    background: #f5f5f5;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .invoice-back-btn:hover {
+    background: #eee;
+    border-color: var(--accent-green);
+    color: var(--primary-green);
+  }
+  .invoice button.pdf-button {
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    color: white;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .invoice button.pdf-button:hover {
+    background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+    transform: translateY(-2px);
+  }
+  .invoice button.pdf-button::before {
+    display: none;
+  }
+  button i {
+    font-size: 14px;
+  }
+  @media (min-width: 768px) {
+    .invoice button.pdf-button {
+      width: auto;
+    }
+  }
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    padding: 10px 16px;
+    background: var(--primary-green);
+    color: white;
+    font-weight: 600;
+    border-radius: 0 0 8px 0;
+    text-decoration: none;
+    transition: left 0.2s;
+  }
+  .skip-link:focus {
+    left: 0;
+    outline: 3px solid var(--accent-green-light);
+    outline-offset: 2px;
+  }

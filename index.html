@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<!--
+  Green Fence AB – Offert. Öppna denna fil i webbläsaren.
+  Struktur: head (länkar + EmailJS-config) → body: staketformulär → kunduppgifter → offert (fylls via JS).
+  Logo: js/logo-data.js. Stilar: css/style.css. Logik: js/*.js (data, fence-ui, map, quote-rows, quote, invoice-actions, app).
+-->
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offert Staket - Green Fence AB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.css"
+    />
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+  <body>
+    <a href="#staket-info-section" class="skip-link">Hoppa till offertformulär</a>
+
+    <!-- ═══ Steg 1: Staketformulär (typ, längd, karta) ═══ -->
+    <main class="form-section" id="staket-info-section">
+      <div class="header-logo"><img id="header-logo-img" alt="Green Fence AB logotyp" src="" /></div>
+      
+      <fieldset class="fence-type-selector" aria-label="Välj stängseltyp">
+        <legend>Välj stängseltyp</legend>
+        <button type="button" class="fence-type-btn selected" data-fence-type="villa" onclick="selectFenceType('villa')" aria-label="Välj villastaket" aria-pressed="true">
+          <span class="fence-type-icon">
+            <img src="images/Skärmbild 2025-12-22 113812.png" alt="" class="fence-type-img" aria-hidden="true" />
+          </span>
+          <span class="fence-type-title">Villastängsel</span>
+          <span class="fence-type-animals"></span>
+        </button>
+        <button type="button" class="fence-type-btn" data-fence-type="animal" onclick="selectFenceType('animal')" aria-label="Välj djurstaket" aria-pressed="false">
+          <span class="fence-type-icon">
+            <img src="images/Skärmbild 2025-12-22 113855.png" alt="" class="fence-type-img" aria-hidden="true" />
+          </span>
+          <span class="fence-type-title">Djurstängsel</span>
+          <span class="fence-type-animals"></span>
+        </button>
+      </fieldset>
+      
+      <p style="font-weight: bold; margin-bottom: 10px">
+        Om du redan känner till måtten på ditt staket kan du ange dem här
+      </p>
+      <label for="metratura">Total längd (m)</label>
+      <input type="number" id="metratura" min="1" step="0.1" oninput="updateAnimalFenceInfo()" aria-describedby="animal-fence-info" />
+      <div id="animal-fence-info" style="display: none; margin-top: 8px; padding: 12px; background: rgba(133, 171, 92, 0.1); border-radius: 8px; font-size: 13px; color: var(--text-secondary);">
+        <i class="fas fa-info-circle"></i> <span id="animal-fence-text"></span>
+      </div>
+      <label for="angoli">Antal hörn</label>
+      <input type="number" id="angoli" min="0" step="1" />
+
+      <div id="villa-options">
+      <label for="farg">Välj färg</label>
+      <select id="farg" aria-label="Välj färg på staket">
+        <option value="Svart">Svart</option>
+        <option value="Mörkgrön">Mörkgrön</option>
+        <option value="Olivgrön">Olivgrön</option>
+        <option value="Galvaniserad">Galvaniserad</option>
+      </select>
+      <label for="hojd">Välj höjd</label>
+      <select id="hojd" aria-label="Välj höjd på staket">
+        <option value="1m">1m</option>
+        <option value="1,20m">1,20 m</option>
+      </select>
+
+      <!-- Enkeldörr / Dubbeldörr dovrebbe essere solo per Villastängsel-->
+    <div id="villagrindar-container" style="margin-top: 10px;">
+      <div style="margin-bottom: 6px;">
+        <label for="enkeldorr-antal">Enkel grindar (antal)</label>
+        <input type="number" id="enkeldorr-antal" min="0" step="1" value="0" />
+      </div>
+      <div style="margin-bottom: 6px;">
+        <label for="dubbeldorr-antal">Dubble grindar (antal)</label>
+        <input type="number" id="dubbeldorr-antal" min="0" step="1" value="0" />
+      </div>
+    </div>
+      
+     <div style="width: 100%; display: flex; justify-content: center; margin-top: 10px;">
+     <div style="display: flex; align-items: center; gap: 6px;">
+     <input type="checkbox" id="plintbetong" style="transform: scale(1.2)" />
+     <label for="plintbetong" style="cursor: pointer; white-space: nowrap;">
+      Lägg till Plintbetong (2 st/stolpe)
+     </label>
+     </div>
+     </div>
+
+      </div>
+    
+
+      
+      <div id="gate-input-container">
+        <label for="gates">Antal Trägrindar</label>
+        <input type="number" id="gates" min="0" step="1" value="0" />
+        <div class="gate-info">
+          <i class="fas fa-info-circle"></i> Varje grind är 3x1 meter 
+        </div>
+      </div>
+
+      <div id="electrify-container" class="electrify-card">
+        <div class="electrify-card-inner">
+          <input type="checkbox" id="electrify-fence" class="electrify-checkbox" />
+          <label for="electrify-fence" class="electrify-label">
+            <i class="fas fa-bolt" aria-hidden="true"></i> Elektrifiera din stängsel
+          </label>
+        </div>
+      </div>
+
+        
+
+
+      <section class="map-instructions" aria-labelledby="map-instructions-heading">
+        <h2 id="map-instructions-heading" class="map-instructions-heading">Karta och ritning</h2>
+        <p class="map-instructions-intro">Sök din adress eller rita staketet direkt på kartan. Så här gör du:</p>
+        <ul class="map-instructions-list">
+          <li><strong>Sök:</strong> Använd sökfältet uppe till höger på kartan – skriv adress eller plats och välj ett förslag. Kartan flyttar sig till valt ställe.</li>
+          <li><strong>✏️ Ny polylinje:</strong> Klicka för att börja rita ett nytt staket.</li>
+          <li><strong>Punkter:</strong> Klicka på kartan för varje hörn eller ändpunkt. Du kan dra punkterna för att justera.</li>
+          <li><strong>🔗 Stäng staket:</strong> När du är klar, klicka för att koppla sista punkten till den första (staket blir slutet).</li>
+          <li><strong>Grindverktyg:</strong> Djurstängsel: använd 🚪 (trägrind). Villastängsel: använd E (enkel grind) eller D (dubbel grind). Klicka på knappen, sedan på kartan – om du klickar nära staketlinjen snappar grinden till linjen. Högerklicka på en grind för att ta bort den.</li>
+          <li><strong>🗑️ Rensa allt:</strong> Tar bort alla ritade staket och grindar.</li>
+        </ul>
+      </section>
+      <div id="map" class="map-container" role="application" aria-label="Karta: sök adress eller rita stakets linje med verktygen till vänster"></div>
+      <div id="polyline-summary" aria-live="polite" aria-atomic="true"></div>
+      <button type="button" onclick="showCustomerStep()" aria-label="Fortsätt till dina uppgifter"><i class="fas fa-arrow-right" aria-hidden="true"></i> Nästa</button>
+      
+      <div class="footer-text">© All rights reserved | Green Fence AB</div>
+    </main>
+
+    <!-- ═══ Steg 2: Kunduppgifter ═══ -->
+    <section id="customer-data-section" class="form-section hidden" aria-labelledby="customer-data-heading">
+      <h1 id="customer-data-heading" class="customer-step-heading">Dina uppgifter</h1>
+      <p class="customer-step-intro">Vi behöver några uppgifter för att kunna återkomma till dig och bekräfta din förfrågan.</p>
+
+      <label for="customer-name">Förnamn</label>
+      <input type="text" id="customer-name" name="customer-name" autocomplete="given-name" placeholder="T.ex. Anna" />
+
+      <label for="customer-surname">Efternamn</label>
+      <input type="text" id="customer-surname" name="customer-surname" autocomplete="family-name" placeholder="T.ex. Andersson" />
+
+      <label for="customer-address">Adress</label>
+      <input type="text" id="customer-address" name="customer-address" autocomplete="street-address" placeholder="Gatuadress, postnummer och ort" />
+
+      <label for="customer-email">E-post</label>
+      <input type="email" id="customer-email" name="customer-email" autocomplete="email" placeholder="namn@exempel.se" />
+
+      <label for="customer-phone">Telefon</label>
+      <input type="tel" id="customer-phone" name="customer-phone" autocomplete="tel" placeholder="T.ex. 070-123 45 67" />
+
+      <div class="customer-delivery-wrap">
+        <input type="checkbox" id="customer-delivery" name="customer-delivery" />
+        <label for="customer-delivery" class="customer-delivery-label">Jag önskar leverans (vi återkommer med pris och villkor)</label>
+      </div>
+
+      <div class="customer-next-info">
+        <p><strong>Nästa steg:</strong> På nästa sida får du en förhandsgranskning av offerten (utkast). Där får du möjlighet att skicka utkastet till vår personal – det sker automatiskt med ett klick, och vi återkommer till dig så snart vi kan för att bekräfta beställningen.</p>
+      </div>
+
+      <div class="customer-step-buttons">
+        <button type="button" onclick="goBackToStaketForm()" class="button-secondary" aria-label="Tillbaka till staketformulär"><i class="fas fa-arrow-left" aria-hidden="true"></i> Tillbaka</button>
+        <button type="button" onclick="goToInvoiceFromCustomer()" aria-label="Gå till offertförhandsgranskning"><i class="fas fa-arrow-right" aria-hidden="true"></i> Visa offert</button>
+      </div>
+      <div class="footer-text">© All rights reserved | Green Fence AB</div>
+    </section>
+
+    <!-- ═══ Steg 3: Offert (fylls och visas via JS) ═══ -->
+    <div id="invoice" class="hidden invoice"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <!-- EmailJS: sätt dina värden här (se EMAILJS_SETUP.md) -->
+    <script>
+      window.EMAILJS = {
+        publicKey: "PASTE_YOUR_PUBLIC_KEY_HERE",
+        serviceId: "PASTE_YOUR_SERVICE_ID_HERE",
+        templateId: "PASTE_YOUR_TEMPLATE_ID_HERE"
+      };
+    </script>
+    <script src="js/logo-data.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/fence-ui.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/quote-rows.js"></script>
+    <script src="js/quote.js"></script>
+    <script src="js/invoice-actions.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
