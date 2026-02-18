@@ -52,10 +52,12 @@
         Om du redan känner till måtten på ditt staket kan du ange dem här
       </p>
       <label for="metratura">Total längd (m)</label>
-      <input type="number" id="metratura" min="1" step="0.1" oninput="updateAnimalFenceInfo()" aria-describedby="animal-fence-info" />
+      <input type="number" id="metratura" min="1" step="0.1" />
+      <!-- Tooltip removed
       <div id="animal-fence-info" style="display: none; margin-top: 8px; padding: 12px; background: rgba(133, 171, 92, 0.1); border-radius: 8px; font-size: 13px; color: var(--text-secondary);">
         <i class="fas fa-info-circle"></i> <span id="animal-fence-text"></span>
       </div>
+      -->
       <label for="angoli">Antal hörn</label>
       <input type="number" id="angoli" min="0" step="1" />
 

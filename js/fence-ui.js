@@ -59,19 +59,19 @@ function selectFenceType(type) {
   // Show/hide gate input and electrify card based on fence type
   const gateContainer = document.getElementById('gate-input-container');
   const electrifyContainer = document.getElementById('electrify-container');
-  const animalFenceInfo = document.getElementById('animal-fence-info');
+  // const animalFenceInfo = document.getElementById('animal-fence-info');  // tooltip removed
   const villaGates = document.getElementById("villagrindar-container");
 
   if (type === 'animal') {
     gateContainer.classList.add('visible');
     if (electrifyContainer) electrifyContainer.classList.add('visible');
-    animalFenceInfo.style.display = 'block';
+    // if (animalFenceInfo) animalFenceInfo.style.display = 'block';
     villaGates.style.display = "none";
-    updateAnimalFenceInfo();
+    // updateAnimalFenceInfo();
   } else {
     gateContainer.classList.remove('visible');
     if (electrifyContainer) electrifyContainer.classList.remove('visible');
-    animalFenceInfo.style.display = 'none';
+    // if (animalFenceInfo) animalFenceInfo.style.display = 'none';
     villaGates.style.display = "block";
   }
 if (typeof updateMapGateToolVisibility === 'function') updateMapGateToolVisibility();
@@ -87,46 +87,35 @@ if (map) map.invalidateSize(); // ricalcola la mappa se il container è visibile
 
 }
 
-// Function to update animal fence info display
-function updateAnimalFenceInfo() {
-  if (selectedFenceType !== 'animal') return;
-  
-  const lengthInput = document.getElementById('metratura');
-  const gateInput = document.getElementById('gates');
-  const infoText = document.getElementById('animal-fence-text');
-  
-  if (!lengthInput || !infoText) return;
-  
-  const length = parseFloat(lengthInput.value) || 0;
-  const gates = parseInt(gateInput?.value) || 0;
-  
-  if (length > 0) {
-    // Round to nearest multiple of 3
-    const roundedLength = Math.round(length / 4) * 4;
-    const gateLength = gates * 3;
-    const effectiveLength = Math.max(0, roundedLength - gateLength);
-    const poles = effectiveLength > 0 ? Math.round(effectiveLength / 3) + 1 : 0;
-    const gatePoles = gates * 2;
-    const totalPoles = poles + gatePoles;
-    
-    let message = `Avrundad längd: ${roundedLength} m`;
-    if (gates > 0) {
-      message += `, Effektiv längd (efter grindar): ${effectiveLength} m`;
-    }
-    message += `. Totalt antal stolpar: ${totalPoles} st`;
-    
-    infoText.textContent = message;
-  } else {
-    infoText.textContent = 'Djurstaket avrundas till närmaste multipel av 4 meter';
-  }
-}
+// Tooltip removed – function kept in case we re-enable the info block
+// function updateAnimalFenceInfo() {
+//   if (selectedFenceType !== 'animal') return;
+//   const lengthInput = document.getElementById('metratura');
+//   const gateInput = document.getElementById('gates');
+//   const infoText = document.getElementById('animal-fence-text');
+//   if (!lengthInput || !infoText) return;
+//   const length = parseFloat(lengthInput.value) || 0;
+//   const gates = parseInt(gateInput?.value) || 0;
+//   if (length > 0) {
+//     const roundedLength = Math.round(length / 4) * 4;
+//     const gateLength = gates * 3;
+//     const effectiveLength = Math.max(0, roundedLength - gateLength);
+//     const poles = effectiveLength > 0 ? Math.round(effectiveLength / 3) + 1 : 0;
+//     const gatePoles = gates * 2;
+//     const totalPoles = poles + gatePoles;
+//     let message = `Avrundad längd: ${roundedLength} m`;
+//     if (gates > 0) message += `, Effektiv längd (efter grindar): ${effectiveLength} m`;
+//     message += `. Totalt antal stolpar: ${totalPoles} st`;
+//     infoText.textContent = message;
+//   } else {
+//     infoText.textContent = 'Djurstaket avrundas till närmaste multipel av 4 meter';
+//   }
+// }
 
 // Add event listener to gate input
 document.addEventListener('DOMContentLoaded', () => {
   const headerLogo = document.getElementById('header-logo-img');
   if (headerLogo && window.GREEN_FENCE_LOGO_SRC) headerLogo.src = window.GREEN_FENCE_LOGO_SRC;
-  const gateInput = document.getElementById('gates');
-  if (gateInput) {
-    gateInput.addEventListener('input', updateAnimalFenceInfo);
-  }
+  // const gateInput = document.getElementById('gates');
+  // if (gateInput) gateInput.addEventListener('input', updateAnimalFenceInfo);  // tooltip removed
 });
