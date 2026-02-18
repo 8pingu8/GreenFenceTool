@@ -98,7 +98,7 @@ function generaPreventivMultiPagina() {
 </div>
 <div class="two-columns">
   <div class="customer-data">
-    <div class="invoice-block-label">Till (kund)</div>
+    <div class="invoice-block-label">Kund</div>
     <div class="invoice-customer-content">${(function() {
       const c = window.customerData || {};
       const esc = (s) => (s == null || s === "" ? "" : String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"));
@@ -239,7 +239,7 @@ function generaPreventivMultiPagina() {
         pris: priser.klammer,
       },
       {
-        namn: "Spannskruv",
+        namn: "Spännskruv",
         antal: spannskruv,
         enhet: "st",
         pris: priser.spannskruv,
@@ -331,8 +331,26 @@ function generaPreventivMultiPagina() {
     ? '<div class="invoice-map-block"><div class="invoice-block-label">Kartritning</div><img src="' + window.capturedMapDataUrl + '" alt="Ritning från kartan" class="invoice-map-screenshot" /></div>'
     : "";
 
-  var MAX_TABLE_ROWS_PER_PAGE = 10;
+  var FIRST_PAGE_MAX_ROWS = 8;
+  var OTHER_PAGES_MAX_ROWS = 12;
   var TABLE_HEAD_HTML = "<thead><tr><th>Beskrivning</th><th>Antal</th><th>Enhet</th><th>Pris (SEK)</th><th>Totalt (SEK)</th></tr></thead>";
+
+  /** Chunk table rows: first page up to FIRST_PAGE_MAX_ROWS, then OTHER_PAGES_MAX_ROWS per page. */
+  function chunkTableRows(rows) {
+    var chunks = [];
+    if (rows.length === 0) return [[]];
+    chunks.push(rows.slice(0, FIRST_PAGE_MAX_ROWS));
+    for (var i = FIRST_PAGE_MAX_ROWS; i < rows.length; i += OTHER_PAGES_MAX_ROWS) {
+      chunks.push(rows.slice(i, i + OTHER_PAGES_MAX_ROWS));
+    }
+    return chunks;
+  }
+
+  function countTableChunks(rows) {
+    if (!rows || rows.length === 0) return 1;
+    if (rows.length <= FIRST_PAGE_MAX_ROWS) return 1;
+    return 1 + Math.ceil((rows.length - FIRST_PAGE_MAX_ROWS) / OTHER_PAGES_MAX_ROWS);
+  }
 
   function parseTableRows(rowsHtml) {
     if (!rowsHtml || !String(rowsHtml).trim()) return [];
@@ -346,9 +364,9 @@ function generaPreventivMultiPagina() {
   function getPageFooterHtml() {
     return (
       '<div class="bottom-info">' +
+      '<p><strong>Observera:</strong></p>' +
       '<p>Eventuell fraktkostnad tillkommer med 1200 SEK + moms.</p>' +
       '<p>Montering ingår inte</p>' +
-      '<p><strong>Observera:</strong> Om ni vill lägga en beställning, vänligen ladda ner PDF:en och skicka en kopia via e-post till <a href="mailto:info@greenfence.se">info@greenfence.se</a>.</p>' +
       "</div>" +
       '<div class="invoice-footer">' +
       '<div class="footer-line-top"></div>' +
@@ -369,11 +387,7 @@ function generaPreventivMultiPagina() {
   function buildPagesForTable(rowsHtml, subtotal, pageStartIndex, totalPdfPages, opts) {
     opts = opts || {};
     var rows = parseTableRows(rowsHtml);
-    var chunks = [];
-    for (var i = 0; i < rows.length; i += MAX_TABLE_ROWS_PER_PAGE) {
-      chunks.push(rows.slice(i, i + MAX_TABLE_ROWS_PER_PAGE));
-    }
-    if (chunks.length === 0) chunks.push([]);
+    var chunks = chunkTableRows(rows);
     if (!totalPdfPages) totalPdfPages = chunks.length;
 
     var pageHtmls = [];
@@ -420,7 +434,9 @@ function generaPreventivMultiPagina() {
       comp = generateComponentRows(meters, angles, colorSelect, heightSelect, plintChecked, selectedFenceType, gateCount);
     }
 
-    var lineParams = "<p>Totallängd: " + roundCeil2(meters).toFixed(2) + " m, Vinklar: " + angles + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>";
+    var lineParams = selectedFenceType === "villa"
+      ? "<p>Totallängd: " + roundCeil2(meters).toFixed(2) + " m, Vinklar: " + angles + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>"
+      : "<p>Totallängd: " + roundCeil2(meters).toFixed(2) + " m, Vinklar: " + angles + "</p>";
     var manualPageHtmls = buildPagesForTable(comp.rowsHtml, comp.subtotal || 0, 1, 0, { mapHtml: mapBlockHtml, lineParams: lineParams });
     var manualSubtotal = comp && comp.subtotal != null ? comp.subtotal * 1.25 : 0;
     manualPageHtmls.forEach(function (html) { pages.push({ html: html, subtotal: manualSubtotal }); });
@@ -444,7 +460,9 @@ function generaPreventivMultiPagina() {
       }
 
       var lineTitle1 = "<h3>Linje 1</h3>";
-      var lineParams1 = "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>";
+      var lineParams1 = selectedFenceType === "villa"
+        ? "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>"
+        : "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + "</p>";
       var singlePageHtmls = buildPagesForTable(comp.rowsHtml, comp.subtotal, 1, 0, { mapHtml: mapBlockHtml, lineTitle: lineTitle1, lineParams: lineParams1 });
       singlePageHtmls.forEach(function (html) { pages.push({ html: html, subtotal: comp.subtotal * 1.25 }); });
     } else {
@@ -482,7 +500,9 @@ function generaPreventivMultiPagina() {
         multiComps.push({
           comp: comp,
           lineTitle: "<h3>Linje " + (idx + 1) + "</h3>",
-          lineParams: "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>"
+          lineParams: selectedFenceType === "villa"
+            ? "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>"
+            : "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + "</p>"
         });
       }
 
@@ -490,8 +510,7 @@ function generaPreventivMultiPagina() {
       var totalChunks = 0;
       for (var t = 0; t < multiComps.length; t++) {
         var rows = parseTableRows(multiComps[t].comp.rowsHtml);
-        var nChunks = Math.max(1, Math.ceil(rows.length / MAX_TABLE_ROWS_PER_PAGE));
-        totalChunks += nChunks;
+        totalChunks += countTableChunks(rows);
       }
       for (var u = 0; u < multiComps.length; u++) {
         var mc = multiComps[u];

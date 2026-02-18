@@ -330,10 +330,39 @@
     padding: 0 !important;
     width: 210mm !important;
     max-width: 210mm !important;
+    min-width: 210mm !important;
     box-sizing: border-box !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     background: #fff !important;
+  }
+  /* Force desktop/fullscreen layout when capturing PDF (ignore viewport) */
+  .invoice.pdf-exporting .invoice-header {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    margin-bottom: 3mm !important;
+  }
+  .invoice.pdf-exporting .invoice-header-right {
+    text-align: right !important;
+  }
+  .invoice.pdf-exporting .two-columns {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    margin-top: 2mm !important;
+    gap: 4mm !important;
+  }
+  .invoice.pdf-exporting .customer-data {
+    width: 48% !important;
+  }
+  .invoice.pdf-exporting .offer-data {
+    width: 48% !important;
+    justify-content: flex-end !important;
+  }
+  .invoice.pdf-exporting .material-table {
+    display: table !important;
+    margin-top: 3mm !important;
+    font-size: 10px !important;
   }
   .invoice.pdf-exporting .page {
     width: 210mm !important;
@@ -350,19 +379,8 @@
   .invoice.pdf-exporting .page:last-child {
     page-break-after: auto !important;
   }
-  .invoice.pdf-exporting .invoice-header {
-    margin-bottom: 3mm !important;
-  }
   .invoice.pdf-exporting .invoice-header-right .title {
     font-size: 18px !important;
-  }
-  .invoice.pdf-exporting .two-columns {
-    margin-top: 2mm !important;
-    gap: 4mm !important;
-  }
-  .invoice.pdf-exporting .material-table {
-    margin-top: 3mm !important;
-    font-size: 10px !important;
   }
   .invoice.pdf-exporting .material-table th,
   .invoice.pdf-exporting .material-table td {

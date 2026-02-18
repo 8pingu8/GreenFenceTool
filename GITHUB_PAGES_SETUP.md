@@ -28,7 +28,7 @@ Your project is ready to be published online with **GitHub Pages**. These are th
 In a terminal, from this project folder (`svedese`), run (replace `YOUR_USERNAME` and `REPO_NAME` with your GitHub username and repo name):
 
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/REPO_NAME.git
+git remote add origin https://github.com/8pingu8/GreenFenceTool.git
 git add .
 git commit -m "Initial commit – Green Fence offert app"
 git branch -M main
