@@ -14,7 +14,7 @@ function generateElectrifiedAnimalFenceRows(metratura, angoli, antalTragrindar =
   const hullingkrampaKgBehov = (metratura / 100) * 5;
   const hullingkrampaPasar = Math.max(1, Math.ceil(hullingkrampaKgBehov / 5));
   const tornadoTorus = metratura / 50;           // Tornado Torus RL13/120/8
-  let stolp10 = ((metratura / angoli) / 4) - (stolp14 - (angoli * 2)); // Stolp 10/220 NTR A
+  let stolp10 = ((metratura / angoli) / 4) - (stolp14); // Stolp 10/220 NTR A
   stolp10 = Math.max(0, Math.ceil(stolp10));
   const gallagherM1400 = 1;
   const greenFenceVarning = Math.ceil(metratura / 100);
@@ -106,7 +106,7 @@ function generateElectrifiedAnimalFenceRows(metratura, angoli, antalTragrindar =
 
   const stolp14 = angoli * 3;
   const stock8 = angoli * 2;
-  let stolp10 = ((metratura / angoli) / 4) - (stolp14 - (angoli * 2));
+  let stolp10 = ((metratura / angoli) / 4) - (stolp14);
   stolp10 = Math.max(0, Math.ceil(stolp10));
   const tornadoTorus = Math.ceil(metratura / 50);
   // Hullikrampa säljs i påsar om 5 kg → antal påsar = ceil(behövda kg / 5)
