@@ -75,15 +75,25 @@
         <option value="1,20m">1,20 m</option>
       </select>
 
-      <!-- Enkeldörr / Dubbeldörr dovrebbe essere solo per Villastängsel-->
+      <!-- Villa gate variants (enkelgrind / dubbelgrind) -->
     <div id="villagrindar-container" style="margin-top: 10px;">
-      <div style="margin-bottom: 6px;">
-        <label for="enkeldorr-antal">Enkel grindar (antal)</label>
-        <input type="number" id="enkeldorr-antal" min="0" step="1" value="0" />
+      <div style="margin-bottom: 6px; display:flex; align-items:center; gap:8px;">
+        <label for="enkelgrind-storlek" style="min-width:100px;">Enkelgrind</label>
+        <select id="enkelgrind-storlek" style="width:120px;">
+          <option value="enkel_1m_2m">1 m × 2 m</option>
+          <option value="enkel_120m_2m">1,2 m × 2 m</option>
+        </select>
+        <input type="number" id="enkelgrind-antal" min="0" step="1" value="0" style="width:60px;" />
       </div>
-      <div style="margin-bottom: 6px;">
-        <label for="dubbeldorr-antal">Dubble grindar (antal)</label>
-        <input type="number" id="dubbeldorr-antal" min="0" step="1" value="0" />
+      <div style="margin-bottom: 6px; display:flex; align-items:center; gap:8px;">
+        <label for="dubbelgrind-storlek" style="min-width:100px;">Dubbelgrind</label>
+        <select id="dubbelgrind-storlek" style="width:120px;">
+          <option value="dubbel_1m_2m">1 m × 2 m</option>
+          <option value="dubbel_1m_4m">1 m × 4 m</option>
+          <option value="dubbel_120m_2m">1,2 m × 2 m</option>
+          <option value="dubbel_120m_4m">1,2 m × 4 m</option>
+        </select>
+        <input type="number" id="dubbelgrind-antal" min="0" step="1" value="0" style="width:60px;" />
       </div>
     </div>
       
@@ -108,7 +118,61 @@
         </div>
       </div>
 
-      <div id="electrify-container" class="electrify-card">
+      <div id="animal-options" class="animal-options-panel" style="display: none;">
+        <p class="animal-options-intro">Välj vilka djur staketet ska användas till. För varje djur kan du ange om staketet ska vara elektrifierat (om valet finns).</p>
+        <div class="animal-options-list">
+          <div class="animal-row" data-animal="cavallo">
+            <input type="checkbox" id="animal-cavallo" name="animal-cavallo" />
+            <label for="animal-cavallo">Cavallo</label>
+            <span class="animal-electrify-note">(endast elektrifierad)</span>
+          </div>
+          <div class="animal-row" data-animal="mucca">
+            <input type="checkbox" id="animal-mucca" name="animal-mucca" />
+            <label for="animal-mucca">Mucca</label>
+            <span class="animal-electrify-wrap"><input type="checkbox" id="animal-mucca-elec" name="animal-mucca-elec" /><label for="animal-mucca-elec">Elektrifierad</label></span>
+          </div>
+          <div class="animal-row" data-animal="pecora">
+            <input type="checkbox" id="animal-pecora" name="animal-pecora" />
+            <label for="animal-pecora">Pecora</label>
+            <span class="animal-electrify-wrap"><input type="checkbox" id="animal-pecora-elec" name="animal-pecora-elec" /><label for="animal-pecora-elec">Elektrifierad</label></span>
+          </div>
+          <div class="animal-row" data-animal="maiale">
+            <input type="checkbox" id="animal-maiale" name="animal-maiale" />
+            <label for="animal-maiale">Maiale</label>
+            <span class="animal-electrify-note">(endast elektrifierad)</span>
+          </div>
+          <div class="animal-row animal-row-cervo" data-animal="cervo">
+            <input type="checkbox" id="animal-cervo" name="animal-cervo" />
+            <label for="animal-cervo">Cervo</label>
+            <span class="animal-cervo-type">
+              <input type="radio" id="cervo-liten" name="cervo-type" value="liten" checked />
+              <label for="cervo-liten">Liten</label>
+              <input type="radio" id="cervo-stor" name="cervo-type" value="stor" />
+              <label for="cervo-stor">Stor</label>
+            </span>
+            <span class="animal-electrify-wrap animal-cervo-elec-wrap"><input type="checkbox" id="animal-cervo-elec" name="animal-cervo-elec" /><label for="animal-cervo-elec">Elektrifierad</label></span>
+          </div>
+          <div class="animal-row" data-animal="cinghiale">
+            <input type="checkbox" id="animal-cinghiale" name="animal-cinghiale" />
+            <label for="animal-cinghiale">Cinghiale</label>
+            <span class="animal-electrify-wrap"><input type="checkbox" id="animal-cinghiale-elec" name="animal-cinghiale-elec" /><label for="animal-cinghiale-elec">Elektrifierad</label></span>
+          </div>
+        </div>
+        <div id="animal-electrified-options" class="animal-electrified-options" style="display: none;">
+          <label for="animal-wire">Tråd (wire)</label>
+          <select id="animal-wire" aria-label="Välj tråd">
+            <option value="standard">Standard</option>
+            <option value="alt1">Alternativ 1</option>
+          </select>
+          <label for="animal-stolp">Stolp</label>
+          <select id="animal-stolp" aria-label="Välj stolp">
+            <option value="standard">Standard</option>
+            <option value="alt1">Alternativ 1</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="electrify-container" class="electrify-card" style="display: none;">
         <div class="electrify-card-inner">
           <input type="checkbox" id="electrify-fence" class="electrify-checkbox" />
           <label for="electrify-fence" class="electrify-label">
@@ -129,6 +193,7 @@
           <li><strong>Punkter:</strong> Klicka på kartan för varje hörn eller ändpunkt. Du kan dra punkterna för att justera.</li>
           <li><strong>🔗 Stäng staket:</strong> När du är klar, klicka för att koppla sista punkten till den första (staket blir slutet).</li>
           <li><strong>Grindverktyg:</strong> Djurstängsel: använd 🚪 (trägrind). Villastängsel: använd E (enkel grind) eller D (dubbel grind). Klicka på knappen, sedan på kartan – om du klickar nära staketlinjen snappar grinden till linjen. Högerklicka på en grind för att ta bort den.</li>
+          <li><strong>↩️ Ångra:</strong> Tar bort senaste åtgärd (en punkt, en stängning av staket eller en grind) så att du kan rätta ett misstag utan att rensa allt.</li>
           <li><strong>🗑️ Rensa allt:</strong> Tar bort alla ritade staket och grindar.</li>
         </ul>
       </section>
@@ -144,11 +209,25 @@
       <h1 id="customer-data-heading" class="customer-step-heading">Dina uppgifter</h1>
       <p class="customer-step-intro">Vi behöver några uppgifter för att kunna återkomma till dig och bekräfta din förfrågan.</p>
 
+      <fieldset class="customer-type-fieldset" aria-label="Kundtyp">
+        <legend class="customer-type-legend">Kundtyp</legend>
+        <div class="customer-type-options">
+          <input type="radio" id="customer-type-private" name="customer-type" value="private" checked />
+          <label for="customer-type-private">Privatperson</label>
+          <input type="radio" id="customer-type-company" name="customer-type" value="company" />
+          <label for="customer-type-company">Företagskund</label>
+        </div>
+      </fieldset>
+
       <label for="customer-name">Förnamn</label>
       <input type="text" id="customer-name" name="customer-name" autocomplete="given-name" placeholder="T.ex. Anna" />
 
       <label for="customer-surname">Efternamn</label>
       <input type="text" id="customer-surname" name="customer-surname" autocomplete="family-name" placeholder="T.ex. Andersson" />
+
+      <p id="customer-id-hint" class="customer-id-hint" aria-live="polite">Ange personnummer.</p>
+      <label for="customer-id-number" id="customer-id-label">Personnummer</label>
+      <input type="text" id="customer-id-number" name="customer-id-number" placeholder="T.ex. 19900101-1234" autocomplete="off" inputmode="numeric" />
 
       <label for="customer-address">Adress</label>
       <input type="text" id="customer-address" name="customer-address" autocomplete="street-address" placeholder="Gatuadress, postnummer och ort" />

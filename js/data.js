@@ -77,14 +77,12 @@ const PRISER = {
   },
 };
 const GATE_PRICES = {
-  single: {
-    "1m": 4601.60,
-    "1,20m": 4748.80
-  },
-  double: {
-    "1m": 6365.60,
-    "1,20m": 6512.80
-  }
+  "enkel_1m_2m":     4601.60,
+  "enkel_120m_2m":   4748.80,
+  "dubbel_1m_2m":    6365.60,
+  "dubbel_1m_4m":    6365.60,
+  "dubbel_120m_2m":  6512.80,
+  "dubbel_120m_4m":  6512.80
 };
 if (typeof window !== "undefined") {
   window.PRISER = PRISER;

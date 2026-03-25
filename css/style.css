@@ -215,7 +215,7 @@
       height: 500px;
     }
   }
-  /* Hide map controls during PDF capture so screenshot is clean */
+  /* Hide only controls during PDF capture so screenshot is clean */
   #map.map-capturing .leaflet-control {
     display: none !important;
   }
@@ -643,6 +643,108 @@
     font-size: 15px;
     color: var(--text-secondary);
     line-height: 1.6;
+  }
+  .customer-type-fieldset {
+    margin: 0 0 20px 0;
+    padding: 12px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    background: var(--bg-subtle, #fafafa);
+  }
+  .customer-type-legend {
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: 0 8px;
+    margin-bottom: 8px;
+  }
+  .customer-type-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 24px;
+    align-items: center;
+  }
+  .customer-type-options input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--primary-green);
+  }
+  .customer-type-options label {
+    margin: 0;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .customer-id-hint {
+    margin: 16px 0 6px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+  .animal-options-panel {
+    margin: 16px 0 20px 0;
+    padding: 16px;
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    background: rgba(133, 171, 92, 0.06);
+  }
+  .animal-options-intro {
+    margin: 0 0 14px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .animal-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .animal-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+  }
+  .animal-row input[type="checkbox"],
+  .animal-row input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--primary-green);
+  }
+  .animal-row label {
+    margin: 0;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .animal-electrify-note {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+  .animal-electrify-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .animal-cervo-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px 12px;
+  }
+  .animal-electrified-options {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    align-items: center;
+  }
+  .animal-electrified-options label {
+    font-weight: 500;
+  }
+  .animal-electrified-options select {
+    min-width: 120px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-light);
   }
   .customer-delivery-wrap {
     display: flex;

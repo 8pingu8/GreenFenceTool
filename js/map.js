@@ -11,6 +11,7 @@
 const SNAP_THRESHOLD_M = 100;
 let gateToolActive = false;
 let gatePlaceType = "animal"; // 'animal' | 'enkel' | 'dubbel'
+let mapUndoStack = [];
 
 const GATE_STYLES = {
   animal: { bg: "#f57c00", border: "#e65100" },
@@ -23,8 +24,9 @@ function initMap() {
   polylines = [];
   currentPolyline = null;
   gateMarkers = [];
+  mapUndoStack = [];
 
-  map = L.map("map").setView([62, 15], 5);
+  map = L.map("map", { preferCanvas: true }).setView([62, 15], 5);
   L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {
@@ -72,6 +74,7 @@ function initMap() {
       L.DomEvent.stopPropagation(e);
       currentPolyline = { points: [], line: null, closed: false };
       polylines.push(currentPolyline);
+      mapUndoStack.push({ action: "start_polyline", polylineIndex: polylines.length - 1 });
       updatePolylineSummary();
     };
     return div;
@@ -95,8 +98,10 @@ function initMap() {
       L.DomEvent.stopPropagation(e);
       if (!currentPolyline || currentPolyline.closed) return;
       if (currentPolyline.points.length < 2) return;
+      const polylineIndex = polylines.indexOf(currentPolyline);
       currentPolyline.closed = true;
       updateLine();
+      mapUndoStack.push({ action: "close_fence", polylineIndex });
       currentPolyline = null; // so next map click doesn't add to this fence
       updatePolylineSummary();
     };
@@ -123,6 +128,27 @@ function initMap() {
     return div;
   };
   resetBtn.addTo(map);
+
+  // Undo (back) button
+  const undoBtn = L.control({ position: "topleft" });
+  undoBtn.onAdd = function () {
+    const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+    div.innerHTML = "↩️";
+    div.style.cursor = "pointer";
+    div.style.background = "white";
+    div.style.width = "30px";
+    div.style.height = "30px";
+    div.style.lineHeight = "30px";
+    div.style.textAlign = "center";
+    div.title = "Ångra senaste (punkt, stängning, grind)";
+    div.setAttribute("aria-label", "Ångra senaste åtgärd");
+    div.onclick = function (e) {
+      L.DomEvent.stopPropagation(e);
+      undoLastMapAction();
+    };
+    return div;
+  };
+  undoBtn.addTo(map);
 
   // Gate tool: 3 separate controls so they stack in column with draw/close/reset
   function makeGateButton(innerHTML, title, ariaLabel, type) {
@@ -194,6 +220,7 @@ function initMap() {
       updateLine();
     });
     currentPolyline.points.push(marker);
+    mapUndoStack.push({ action: "add_point", polylineIndex: polylines.indexOf(currentPolyline), marker });
 
     if (!currentPolyline.line) {
       currentPolyline.line = L.polyline([], {
@@ -217,6 +244,7 @@ function resetMap() {
   polylines = [];
   currentPolyline = null;
   gateMarkers = [];
+  mapUndoStack = [];
   gateToolActive = false;
   gatePlaceType = "animal";
   const el = window._gateToolElements;
@@ -226,6 +254,67 @@ function resetMap() {
     if (el.dubbelBtn) { el.dubbelBtn.style.background = "white"; el.dubbelBtn.style.border = ""; }
   }
   updatePolylineSummary();
+}
+
+/**
+ * Undo last map action (add point, close fence, add gate, start polyline).
+ * No-op if nothing to undo.
+ */
+function undoLastMapAction() {
+  if (!map || !mapUndoStack.length) return;
+  const entry = mapUndoStack.pop();
+  switch (entry.action) {
+    case "add_point": {
+      const p = polylines[entry.polylineIndex];
+      if (!p || !entry.marker) return;
+      const idx = p.points.indexOf(entry.marker);
+      if (idx !== -1) {
+        map.removeLayer(entry.marker);
+        p.points.splice(idx, 1);
+        if (p.points.length === 0 && p.line) {
+          map.removeLayer(p.line);
+          p.line = null;
+        }
+        if (p === currentPolyline && p.points.length === 0) {
+          polylines.splice(entry.polylineIndex, 1);
+          currentPolyline = null;
+        }
+        updateLine();
+        updatePolylineSummary();
+      }
+      break;
+    }
+    case "start_polyline": {
+      if (polylines.length && polylines[entry.polylineIndex]) {
+        const removed = polylines.splice(entry.polylineIndex, 1)[0];
+        if (removed.points && removed.points.length) {
+          removed.points.forEach((m) => map.removeLayer(m));
+          if (removed.line) map.removeLayer(removed.line);
+        }
+        currentPolyline = polylines.length ? polylines[polylines.length - 1] : null;
+        if (currentPolyline && currentPolyline.closed) currentPolyline = null;
+        updatePolylineSummary();
+      }
+      break;
+    }
+    case "close_fence": {
+      const p = polylines[entry.polylineIndex];
+      if (!p) return;
+      p.closed = false;
+      currentPolyline = p;
+      updateLine();
+      updatePolylineSummary();
+      break;
+    }
+    case "add_gate": {
+      if (entry.marker && map.hasLayer(entry.marker)) {
+        map.removeLayer(entry.marker);
+        gateMarkers = gateMarkers.filter((g) => g.marker !== entry.marker);
+        updatePolylineSummary();
+      }
+      break;
+    }
+  }
 }
 
 // Closest point on segment A-B to P; returns { latlng, distance } or null if no polylines
@@ -279,6 +368,7 @@ function addGateMarker(latlng, type) {
     updatePolylineSummary();
   });
   gateMarkers.push({ marker, type });
+  mapUndoStack.push({ action: "add_gate", marker, type });
   updatePolylineSummary();
 }
 
@@ -347,25 +437,27 @@ function updatePolylineSummary() {
   const gatesEl = document.getElementById("gates");
   if (container) container.innerHTML = "";
 
-  if (polylines.length === 1) {
-    const d = calculateLengthAndAngles(polylines[0]);
-    const lengthStr = typeof d.length === "number" ? roundCeil2(d.length).toFixed(2) : "0.00";
-    const anglesVal = typeof d.angles === "number" ? d.angles : 0;
-    if (metraturaEl) {
-      metraturaEl.value = lengthStr;
-      metraturaEl.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    if (angoliEl) angoliEl.value = String(anglesVal);
-    if (typeof updateAnimalFenceInfo === "function") updateAnimalFenceInfo();
-  } else if (polylines.length > 1) {
+  if (polylines.length >= 1) {
+    let totalLength = 0;
+    let totalAngles = 0;
     polylines.forEach((p, i) => {
       const d = calculateLengthAndAngles(p);
+      totalLength += typeof d.length === "number" ? d.length : 0;
+      totalAngles += typeof d.angles === "number" ? d.angles : 0;
       const div = document.createElement("div");
       div.className = "polyline-info";
       div.innerText = `Polylinje ${i + 1}: Total längd ${roundCeil2(d.length).toFixed(2)} m, Antal vinklar ${d.angles}`;
       if (container) container.appendChild(div);
     });
-  } else {
+    const lengthStr = roundCeil2(totalLength).toFixed(2);
+    if (metraturaEl) {
+      metraturaEl.value = lengthStr;
+      metraturaEl.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    if (angoliEl) angoliEl.value = String(totalAngles);
+    if (typeof updateAnimalFenceInfo === "function") updateAnimalFenceInfo();
+  }
+  if (polylines.length === 0) {
     if (metraturaEl) metraturaEl.value = "";
     if (angoliEl) angoliEl.value = "";
   }
@@ -379,8 +471,8 @@ function updatePolylineSummary() {
     gatesEl.value = String(animalCount);
     gatesEl.dispatchEvent(new Event("input", { bubbles: true }));
   }
-  const enkelEl = document.getElementById("enkeldorr-antal");
-  const dubbelEl = document.getElementById("dubbeldorr-antal");
+  const enkelEl = document.getElementById("enkelgrind-antal");
+  const dubbelEl = document.getElementById("dubbelgrind-antal");
   if (enkelEl) {
     enkelEl.value = String(enkelCount);
     enkelEl.dispatchEvent(new Event("input", { bubbles: true }));
@@ -392,9 +484,9 @@ function updatePolylineSummary() {
 
   if (container && (animalCount + enkelCount + dubbelCount) > 0) {
     const parts = [];
-    if (animalCount > 0) parts.push("Trägrindar: " + animalCount);
-    if (enkelCount > 0) parts.push("Enkel grindar: " + enkelCount);
-    if (dubbelCount > 0) parts.push("Dubbel grindar: " + dubbelCount);
+    if (animalCount > 0) parts.push(animalCount === 1 ? "Trägrind: 1" : "Trägrindar: " + animalCount);
+    if (enkelCount > 0) parts.push(enkelCount === 1 ? "Enkel grind: 1" : "Enkel grindar: " + enkelCount);
+    if (dubbelCount > 0) parts.push(dubbelCount === 1 ? "Dubbel grind: 1" : "Dubbel grindar: " + dubbelCount);
     const gateDiv = document.createElement("div");
     gateDiv.className = "polyline-info gate-summary";
     gateDiv.innerText = parts.join(" · ");
@@ -403,46 +495,77 @@ function updatePolylineSummary() {
 }
 
 /**
- * Draw-only fallback: grey background + polylines + gate markers (no map tiles).
- * Use when html2canvas fails or tiles are cross-origin. Returns data URL or null.
+ * Compute LatLngBounds that contain all drawn polylines and gate markers.
+ */
+function getDrawingBounds() {
+  var pts = [];
+  polylines.forEach(function (p) {
+    if (!p.points) return;
+    p.points.forEach(function (m) { pts.push(m.getLatLng()); });
+  });
+  (gateMarkers || []).forEach(function (g) { pts.push(g.marker.getLatLng()); });
+  if (pts.length === 0) return null;
+  return L.latLngBounds(pts);
+}
+
+/**
+ * Fallback: grey background + vectors drawn via latLngToContainerPoint.
+ * Used only when html2canvas is unavailable or fails entirely.
  */
 function drawOnlyMapCapture() {
   if (!map) return null;
   try {
-    const size = map.getSize();
+    var size = map.getSize();
     if (!size || size.x < 10 || size.y < 10) return null;
-    const canvas = document.createElement("canvas");
+    var canvas = document.createElement("canvas");
     canvas.width = size.x;
     canvas.height = size.y;
-    const ctx = canvas.getContext("2d");
+    var ctx = canvas.getContext("2d");
     if (!ctx) return null;
 
     ctx.fillStyle = "#f0f0f0";
     ctx.fillRect(0, 0, size.x, size.y);
 
+    function xy(ll) {
+      var pt = map.latLngToContainerPoint(ll);
+      return { x: pt.x, y: pt.y };
+    }
+
     polylines.forEach(function (p) {
       if (!p.line) return;
-      const latlngs = p.line.getLatLngs();
-      if (!latlngs || latlngs.length < 2) return;
-      const points = latlngs.map(function (ll) {
-        return map.latLngToContainerPoint(ll);
-      });
+      var lls = p.line.getLatLngs();
+      if (!lls || lls.length < 2) return;
       ctx.strokeStyle = "#c62828";
       ctx.lineWidth = 3;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
-      for (let i = 1; i < points.length; i++) {
-        ctx.lineTo(points[i].x, points[i].y);
+      var first = xy(lls[0]);
+      ctx.moveTo(first.x, first.y);
+      for (var i = 1; i < lls.length; i++) {
+        var pt = xy(lls[i]);
+        ctx.lineTo(pt.x, pt.y);
       }
       ctx.stroke();
     });
 
+    polylines.forEach(function (p) {
+      if (!p.points) return;
+      p.points.forEach(function (m) {
+        var c = xy(m.getLatLng());
+        ctx.fillStyle = "#ffffff";
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+    });
+
     (gateMarkers || []).forEach(function (g) {
-      const type = g.type || "animal";
-      const style = GATE_STYLES[type] || GATE_STYLES.animal;
-      const pt = map.latLngToContainerPoint(g.marker.getLatLng());
+      var style = GATE_STYLES[g.type] || GATE_STYLES.animal;
+      var pt = xy(g.marker.getLatLng());
       ctx.fillStyle = style.bg;
       ctx.strokeStyle = style.border;
       ctx.lineWidth = 2;
@@ -461,76 +584,50 @@ function drawOnlyMapCapture() {
 
 /**
  * Capture the current map view as a PNG data URL for PDF.
- * Uses same coordinate system as drawOnlyMapCapture (Leaflet container + getSize)
- * so red lines align with the captured map and dots.
+ * Strategy: fit the map to the drawings, screenshot everything with html2canvas
+ * (tiles + canvas-rendered polylines + DOM marker dots), no post-processing.
+ * preferCanvas:true on the map ensures polylines are on <canvas> (html2canvas-friendly).
  */
 function captureMapForPdf() {
   if (!map || (polylines.length === 0 && (!gateMarkers || gateMarkers.length === 0))) {
     return Promise.resolve(null);
   }
 
-  const container = document.getElementById("map");
+  var container = document.getElementById("map");
   if (!container) return Promise.resolve(drawOnlyMapCapture());
 
-  if (typeof html2canvas !== "function") {
-    return Promise.resolve(drawOnlyMapCapture());
+  var bounds = getDrawingBounds();
+  if (bounds && bounds.isValid()) {
+    map.fitBounds(bounds, { padding: [50, 50], animate: false });
   }
 
   container.classList.add("map-capturing");
-  return html2canvas(container, {
-    useCORS: true,
-    logging: false,
-    scale: 1,
-    backgroundColor: "#f0f0f0",
-  })
-    .then(function (canvas) {
-      container.classList.remove("map-capturing");
-      try {
-        drawPolylinesOntoCanvas(canvas);
-        return canvas.toDataURL("image/png");
-      } catch (e) {
-        return drawOnlyMapCapture();
-      }
-    })
-    .catch(function () {
-      container.classList.remove("map-capturing");
-      return drawOnlyMapCapture();
-    });
-}
 
-/**
- * Draw polyline paths onto the canvas using the same coordinate system as drawOnlyMapCapture:
- * Leaflet latLngToContainerPoint + map.getSize(), then scale to canvas size. No offset —
- * (0,0) is the container top-left in both Leaflet and html2canvas.
- */
-function drawPolylinesOntoCanvas(canvas) {
-  if (!map || !canvas) return;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
+  if (typeof html2canvas !== "function") {
+    container.classList.remove("map-capturing");
+    return Promise.resolve(drawOnlyMapCapture());
+  }
 
-  const size = map.getSize();
-  if (!size || size.x < 1 || size.y < 1) return;
-  const scaleX = canvas.width / size.x;
-  const scaleY = canvas.height / size.y;
-
-  polylines.forEach(function (p) {
-    if (!p.line) return;
-    const latlngs = p.line.getLatLngs();
-    if (!latlngs || latlngs.length < 2) return;
-    const points = latlngs.map(function (ll) {
-      const pt = map.latLngToContainerPoint(ll);
-      return { x: pt.x * scaleX, y: pt.y * scaleY };
-    });
-    const path = p.closed && points.length >= 2 ? points.concat([points[0]]) : points;
-    ctx.strokeStyle = "#c62828";
-    ctx.lineWidth = 3;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.beginPath();
-    ctx.moveTo(path[0].x, path[0].y);
-    for (let i = 1; i < path.length; i++) {
-      ctx.lineTo(path[i].x, path[i].y);
-    }
-    ctx.stroke();
+  return new Promise(function (resolve) {
+    setTimeout(function () {
+      html2canvas(container, {
+        useCORS: true,
+        logging: false,
+        scale: 1,
+        backgroundColor: "#f0f0f0",
+      })
+        .then(function (canvas) {
+          container.classList.remove("map-capturing");
+          try {
+            resolve(canvas.toDataURL("image/png"));
+          } catch (e) {
+            resolve(drawOnlyMapCapture());
+          }
+        })
+        .catch(function () {
+          container.classList.remove("map-capturing");
+          resolve(drawOnlyMapCapture());
+        });
+    }, 600);
   });
 }

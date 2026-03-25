@@ -52,7 +52,7 @@ function generateElectrifiedAnimalFenceRows(metratura, angoli, antalTragrindar =
     { namn: "Stolp 14/250 NTR A", antal: stolp14, enhet: "st", pris: priser.stolp14 },
     { namn: "Stock 8/300 NTR A", antal: stock8, enhet: "st", pris: priser.stock8 },
     { namn: "Gripple Stagwire Kit 600 kg", antal: grippleStagwire, enhet: "st", pris: priser.grippleStagwire },
-    { namn: "Tornado Hullingkrampa 40 mm (påse 5 kg)", antal: hullingkrampaPasar, enhet: "påse", pris: priser.hullingkrampaPerPase },
+    { namn: "Tornado Hullingkrampa 40 mm (förp 5 kg)", antal: hullingkrampaPasar, enhet: "förp", pris: priser.hullingkrampaPerPase },
     { namn: "Stolp 10/220 NTR A", antal: stolp10, enhet: "st", pris: priser.stolp10 },
     { namn: "Gallagher M1400 230 V", antal: gallagherM1400, enhet: "st", pris: priser.gallagherM1400 },
     { namn: "Green Fence Varningsskylt", antal: greenFenceVarning, enhet: "st", pris: priser.greenFenceVarning },
@@ -87,7 +87,7 @@ function generateElectrifiedAnimalFenceRows(metratura, angoli, antalTragrindar =
 <td>${it.namn}</td>
 <td>${roundCeil2(it.antal).toFixed(2)}</td>
 <td>${it.enhet}</td>
-<td>${roundCeil2(it.pris).toFixed(2)}</td>
+<td>${Number(it.pris).toFixed(2)}</td>
 <td>${total.toFixed(2)}</td>
     </tr>`;
   });
@@ -134,7 +134,7 @@ function generateElectrifiedAnimalFenceRows(metratura, angoli, antalTragrindar =
       { namn: "Stock 8/300 NTR A", antal: stock8, enhet: "st", pris: priser.stock8 },
       { namn: "Stolp 10/220 NTR A", antal: stolp10, enhet: "st", pris: priser.stolp10 },
       { namn: "Tornado Torus RL13/120/8", antal: tornadoTorus, enhet: "rullar", pris: priser.tornadoTorus },
-      { namn: "Hullingkrampa 40 mm (påse 5 kg)", antal: hullingkrampaPasar, enhet: "påse", pris: priser.hullingkrampaPerPase },
+      { namn: "Hullingkrampa 40 mm (förp 5 kg)", antal: hullingkrampaPasar, enhet: "förp", pris: priser.hullingkrampaPerPase },
       { namn: "Gripple T-Clip 1", antal: grippleTClip, enhet: "st", pris: priser.grippleTClip },
       { namn: "Gripple Medium – Justerbart skarvlås", antal: grippleMedium, enhet: "st", pris: priser.grippleMedium },
       { namn: "Gripple Stagwire kit 600 kg", antal: grippleStagwire, enhet: "st", pris: priser.grippleStagwire }
@@ -158,10 +158,50 @@ function generateElectrifiedAnimalFenceRows(metratura, angoli, antalTragrindar =
           <td>${it.namn}</td>
           <td>${roundCeil2(it.antal).toFixed(2)}</td>
           <td>${it.enhet}</td>
-          <td>${roundCeil2(it.pris).toFixed(2)}</td>
+          <td>${Number(it.pris).toFixed(2)}</td>
           <td>${total.toFixed(2)}</td>
       </tr>`;
   });
 
   return { rowsHtml, subtotal, lock: stolp14 + stolp10 + stock8, items };
     }
+
+/**
+ * Default electrified math (shared until per-animal formulas are defined).
+ */
+function defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar) {
+  return generateElectrifiedAnimalFenceRows(metratura, angoli, antalTragrindar);
+}
+
+/**
+ * Default non-electrified math (shared until per-animal formulas are defined).
+ */
+function defaultNonElectrifiedAnimalRows(metratura, angoli, antalTragrindar) {
+  return generateDJURSTANGSELRows(metratura, angoli, antalTragrindar);
+}
+
+/**
+ * Per-animal dispatcher: one case per (animalKey, electrified). Each case calls default math;
+ * replace with dedicated formulas later (e.g. pecoraElectrifiedRows, muccaNonElectrifiedRows).
+ * animalKey: cavallo, mucca, pecora, maiale, cervo_liten, cervo_stor, cinghiale.
+ */
+function getAnimalFenceRows(animalKey, electrified, metratura, angoli, antalTragrindar) {
+  switch (animalKey) {
+    case "cavallo":
+      return defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
+    case "mucca":
+      return electrified ? defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar) : defaultNonElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
+    case "pecora":
+      return electrified ? defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar) : defaultNonElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
+    case "maiale":
+      return defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
+    case "cervo_liten":
+      return electrified ? defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar) : defaultNonElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
+    case "cervo_stor":
+      return defaultNonElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
+    case "cinghiale":
+      return electrified ? defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar) : defaultNonElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
+    default:
+      return electrified ? defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar) : defaultNonElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
+  }
+}

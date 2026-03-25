@@ -47,9 +47,13 @@ function goBackToStaketForm() {
 }
 
 function goToInvoiceFromCustomer() {
+  const isCompany = document.getElementById("customer-type-company") && document.getElementById("customer-type-company").checked;
   window.customerData = {
+    customerType: isCompany ? "company" : "private",
+    customerTypeLabel: isCompany ? "Företagskund" : "Privatperson",
     name: (document.getElementById("customer-name") && document.getElementById("customer-name").value) || "",
     surname: (document.getElementById("customer-surname") && document.getElementById("customer-surname").value) || "",
+    idNumber: (document.getElementById("customer-id-number") && document.getElementById("customer-id-number").value) || "",
     address: (document.getElementById("customer-address") && document.getElementById("customer-address").value) || "",
     email: (document.getElementById("customer-email") && document.getElementById("customer-email").value) || "",
     phone: (document.getElementById("customer-phone") && document.getElementById("customer-phone").value) || "",
@@ -102,12 +106,15 @@ function generaPreventivMultiPagina() {
     <div class="invoice-customer-content">${(function() {
       const c = window.customerData || {};
       const esc = (s) => (s == null || s === "" ? "" : String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"));
+      const typeLabel = esc(c.customerTypeLabel) || "—";
+      const idLabel = c.customerType === "company" ? "Organisationsnummer" : "Personnummer";
+      const idNum = esc(c.idNumber) || "—";
       const name = [esc(c.name), esc(c.surname)].filter(Boolean).join(" ") || "—";
       const address = esc(c.address) || "—";
       const email = esc(c.email) || "—";
       const phone = esc(c.phone) || "—";
       const delivery = c.delivery ? "Ja, önskar leverans" : "Nej";
-      return name + "<br>" + address + "<br>" + email + "<br>" + phone + "<br>" + delivery;
+      return typeLabel + "<br>" + name + "<br>" + idLabel + ": " + idNum + "<br>" + address + "<br>" + email + "<br>" + phone + "<br>" + delivery;
     })()}</div>
   </div>
   <div class="offer-data">
@@ -277,27 +284,33 @@ function generaPreventivMultiPagina() {
     }
 
     if (fenceType === "villa" && gatePrices) {
-      const enkelEl = document.getElementById("enkeldorr-antal");
-      const dubbelEl = document.getElementById("dubbeldorr-antal");
-      const singleQty = parseInt(enkelEl && enkelEl.value ? enkelEl.value : "0", 10) || 0;
-      const doubleQty = parseInt(dubbelEl && dubbelEl.value ? dubbelEl.value : "0", 10) || 0;
-      const singlePris = gatePrices.single && gatePrices.single[hojd] != null ? gatePrices.single[hojd] : 0;
-      const doublePris = gatePrices.double && gatePrices.double[hojd] != null ? gatePrices.double[hojd] : 0;
-
-      if (singleQty > 0) {
+      const sizeLabels = {
+        "enkel_1m_2m": "1 m × 2 m", "enkel_120m_2m": "1,2 m × 2 m",
+        "dubbel_1m_2m": "1 m × 2 m", "dubbel_1m_4m": "1 m × 4 m",
+        "dubbel_120m_2m": "1,2 m × 2 m", "dubbel_120m_4m": "1,2 m × 4 m"
+      };
+      const enkelSizeEl = document.getElementById("enkelgrind-storlek");
+      const enkelQtyEl  = document.getElementById("enkelgrind-antal");
+      const enkelKey = enkelSizeEl ? enkelSizeEl.value : "";
+      const enkelQty = parseInt(enkelQtyEl && enkelQtyEl.value ? enkelQtyEl.value : "0", 10) || 0;
+      if (enkelQty > 0 && enkelKey) {
         items.push({
-          namn: `Enkel grind 1 m – ${farg} – höjd ${hojd}`,
-          antal: singleQty,
+          namn: `Enkelgrind ${sizeLabels[enkelKey] || enkelKey} – ${farg}`,
+          antal: enkelQty,
           enhet: "st",
-          pris: singlePris
+          pris: gatePrices[enkelKey] != null ? gatePrices[enkelKey] : 0
         });
       }
-      if (doubleQty > 0) {
+      const dubbelSizeEl = document.getElementById("dubbelgrind-storlek");
+      const dubbelQtyEl  = document.getElementById("dubbelgrind-antal");
+      const dubbelKey = dubbelSizeEl ? dubbelSizeEl.value : "";
+      const dubbelQty = parseInt(dubbelQtyEl && dubbelQtyEl.value ? dubbelQtyEl.value : "0", 10) || 0;
+      if (dubbelQty > 0 && dubbelKey) {
         items.push({
-          namn: `Dubbel grind 3 m – ${farg} – höjd ${hojd}`,
-          antal: doubleQty,
+          namn: `Dubbelgrind ${sizeLabels[dubbelKey] || dubbelKey} – ${farg}`,
+          antal: dubbelQty,
           enhet: "st",
-          pris: doublePris
+          pris: gatePrices[dubbelKey] != null ? gatePrices[dubbelKey] : 0
         });
       }
     }
@@ -315,7 +328,7 @@ function generaPreventivMultiPagina() {
   <td>${String(it.namn || "").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</td>
   <td>${roundCeil2(antal).toFixed(2)}</td>
   <td>${String(it.enhet || "")}</td>
-  <td>${roundCeil2(pris).toFixed(2)}</td>
+  <td>${Number(pris).toFixed(2)}</td>
   <td>${total.toFixed(2)}</td>
 </tr>`;
     });
@@ -415,114 +428,110 @@ function generaPreventivMultiPagina() {
   // Costruzione pagine
   let pages = [];
   if (useManual) {
-    // Manual mode: single table, paginated by MAX_TABLE_ROWS_PER_PAGE
     const metraturaEl = document.getElementById("metratura");
     const angoliEl = document.getElementById("angoli");
     const meters = metraturaEl ? parseFloat(metraturaEl.value) || 0 : 0;
     const angles = angoliEl ? parseInt(angoliEl.value, 10) || 0 : 0;
-    const electrifyEl = document.getElementById("electrify-fence");
-    const electrifyChecked = electrifyEl ? electrifyEl.checked : false;
-    let comp;
 
     if (selectedFenceType === "animal") {
-      if (electrifyChecked) {
-        comp = generateElectrifiedAnimalFenceRows(meters, angles, gateCount);
+      var animalConfigs = typeof getSelectedAnimalConfigs === "function" ? getSelectedAnimalConfigs() : [];
+      if (animalConfigs.length === 0) {
+        var compDef = generateDJURSTANGSELRows(meters, angles, gateCount);
+        var lineParamsDef = "<p>Totallängd: " + roundCeil2(meters).toFixed(2) + " m, Vinklar: " + angles + "</p>";
+        var manualPageHtmlsDef = buildPagesForTable(compDef.rowsHtml, compDef.subtotal || 0, 1, 0, { mapHtml: mapBlockHtml, lineParams: lineParamsDef });
+        manualPageHtmlsDef.forEach(function (html) { pages.push({ html: html, subtotal: (compDef.subtotal || 0) * 1.25 }); });
       } else {
-        comp = generateDJURSTANGSELRows(meters, angles, gateCount);
+        animalConfigs.forEach(function (cfg, idx) {
+          var compA = typeof getAnimalFenceRows === "function"
+            ? getAnimalFenceRows(cfg.animalKey, cfg.electrified, meters, angles, gateCount)
+            : (cfg.electrified ? generateElectrifiedAnimalFenceRows(meters, angles, gateCount) : generateDJURSTANGSELRows(meters, angles, gateCount));
+          var lineTitleA = "<h3>" + (cfg.animalLabel || cfg.animalKey) + " (" + (cfg.electrified ? "elektrifierad" : "ej elektrifierad") + ")</h3>";
+          var lineParamsA = "<p>Totallängd: " + roundCeil2(meters).toFixed(2) + " m, Vinklar: " + angles + (cfg.electrified && typeof getAnimalWireStolpParams === "function" ? getAnimalWireStolpParams() : "") + "</p>";
+          var opts = { lineTitle: lineTitleA, lineParams: lineParamsA };
+          if (idx === 0) opts.mapHtml = mapBlockHtml;
+          var manualPageHtmlsA = buildPagesForTable(compA.rowsHtml, compA.subtotal || 0, 1, 0, opts);
+          manualPageHtmlsA.forEach(function (html) { pages.push({ html: html, subtotal: (compA.subtotal || 0) * 1.25 }); });
+        });
       }
     } else {
-      comp = generateComponentRows(meters, angles, colorSelect, heightSelect, plintChecked, selectedFenceType, gateCount);
+      var comp = generateComponentRows(meters, angles, colorSelect, heightSelect, plintChecked, selectedFenceType, gateCount);
+      var lineParams = selectedFenceType === "villa"
+        ? "<p>Totallängd: " + roundCeil2(meters).toFixed(2) + " m, Vinklar: " + angles + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>"
+        : "<p>Totallängd: " + roundCeil2(meters).toFixed(2) + " m, Vinklar: " + angles + "</p>";
+      var manualPageHtmls = buildPagesForTable(comp.rowsHtml, comp.subtotal || 0, 1, 0, { mapHtml: mapBlockHtml, lineParams: lineParams });
+      var manualSubtotal = comp && comp.subtotal != null ? comp.subtotal * 1.25 : 0;
+      manualPageHtmls.forEach(function (html) { pages.push({ html: html, subtotal: manualSubtotal }); });
     }
-
-    var lineParams = selectedFenceType === "villa"
-      ? "<p>Totallängd: " + roundCeil2(meters).toFixed(2) + " m, Vinklar: " + angles + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>"
-      : "<p>Totallängd: " + roundCeil2(meters).toFixed(2) + " m, Vinklar: " + angles + "</p>";
-    var manualPageHtmls = buildPagesForTable(comp.rowsHtml, comp.subtotal || 0, 1, 0, { mapHtml: mapBlockHtml, lineParams: lineParams });
-    var manualSubtotal = comp && comp.subtotal != null ? comp.subtotal * 1.25 : 0;
-    manualPageHtmls.forEach(function (html) { pages.push({ html: html, subtotal: manualSubtotal }); });
   } else {
     // Modalità mappa: se c'è 1 polylinje -> user expects inputs updated and invoice single page created from inputs (but we still treat as single polylinje)
     if (polylines.length === 1) {
       const d = calculateLengthAndAngles(polylines[0]);
       const meters = d.length;
       const angles = d.angles;
-      let comp;
-      const electrifyChecked = document.getElementById("electrify-fence") ? document.getElementById("electrify-fence").checked : false;
 
       if (selectedFenceType === "animal") {
-        if (electrifyChecked) {
-          comp = generateElectrifiedAnimalFenceRows(meters, angles, gateCount);
+        var animalConfigs1 = typeof getSelectedAnimalConfigs === "function" ? getSelectedAnimalConfigs() : [];
+        if (animalConfigs1.length === 0) {
+          var comp1Def = generateDJURSTANGSELRows(meters, angles, gateCount);
+          var lineParams1Def = "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + "</p>";
+          var singlePageHtmls1Def = buildPagesForTable(comp1Def.rowsHtml, comp1Def.subtotal, 1, 0, { mapHtml: mapBlockHtml, lineTitle: "<h3>Linje 1</h3>", lineParams: lineParams1Def });
+          singlePageHtmls1Def.forEach(function (html) { pages.push({ html: html, subtotal: comp1Def.subtotal * 1.25 }); });
         } else {
-          comp = generateDJURSTANGSELRows(meters, angles, gateCount);
+          animalConfigs1.forEach(function (cfg, idx) {
+            var comp1A = typeof getAnimalFenceRows === "function"
+              ? getAnimalFenceRows(cfg.animalKey, cfg.electrified, meters, angles, gateCount)
+              : (cfg.electrified ? generateElectrifiedAnimalFenceRows(meters, angles, gateCount) : generateDJURSTANGSELRows(meters, angles, gateCount));
+            var lineTitle1A = "<h3>" + (cfg.animalLabel || cfg.animalKey) + " (" + (cfg.electrified ? "elektrifierad" : "ej elektrifierad") + ")</h3>";
+            var lineParams1A = "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + (cfg.electrified ? getAnimalWireStolpParams() : "") + "</p>";
+            var opts1 = { lineTitle: lineTitle1A, lineParams: lineParams1A };
+            if (idx === 0) opts1.mapHtml = mapBlockHtml;
+            var singlePageHtmls1A = buildPagesForTable(comp1A.rowsHtml, comp1A.subtotal, 1, 0, opts1);
+            singlePageHtmls1A.forEach(function (html) { pages.push({ html: html, subtotal: comp1A.subtotal * 1.25 }); });
+          });
         }
       } else {
-        comp = generateComponentRows(meters, angles, colorSelect, heightSelect, plintChecked, selectedFenceType, gateCount);
+        var comp = generateComponentRows(meters, angles, colorSelect, heightSelect, plintChecked, selectedFenceType, gateCount);
+        var lineTitle1 = "<h3>Linje 1</h3>";
+        var lineParams1 = selectedFenceType === "villa"
+          ? "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>"
+          : "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + "</p>";
+        var singlePageHtmls = buildPagesForTable(comp.rowsHtml, comp.subtotal, 1, 0, { mapHtml: mapBlockHtml, lineTitle: lineTitle1, lineParams: lineParams1 });
+        singlePageHtmls.forEach(function (html) { pages.push({ html: html, subtotal: comp.subtotal * 1.25 }); });
       }
-
-      var lineTitle1 = "<h3>Linje 1</h3>";
-      var lineParams1 = selectedFenceType === "villa"
-        ? "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>"
-        : "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + "</p>";
-      var singlePageHtmls = buildPagesForTable(comp.rowsHtml, comp.subtotal, 1, 0, { mapHtml: mapBlockHtml, lineTitle: lineTitle1, lineParams: lineParams1 });
-      singlePageHtmls.forEach(function (html) { pages.push({ html: html, subtotal: comp.subtotal * 1.25 }); });
     } else {
-      // polylines.length >= 2 -> paginate each line's table by MAX_TABLE_ROWS_PER_PAGE, same header/footer every page
-      var electrifyEl2 = document.getElementById("electrify-fence");
-      var electrifyCheckedMulti = electrifyEl2 ? electrifyEl2.checked : false;
-      var multiOverallTotal = polylines.reduce(function (sum, poly, idx) {
-        var gatesForPoly = idx === 0 ? gateCount : 0;
-        var dd = calculateLengthAndAngles(poly);
-        var c;
-        if (selectedFenceType === "animal") {
-          c = electrifyCheckedMulti
-            ? generateElectrifiedAnimalFenceRows(dd.length, dd.angles, gatesForPoly)
-            : generateDJURSTANGSELRows(dd.length, dd.angles, gatesForPoly);
-        } else {
-          c = generateComponentRows(dd.length, dd.angles, colorSelect, heightSelect, plintChecked, selectedFenceType, gatesForPoly);
-        }
-        return sum + c.subtotal * 1.25;
-      }, 0);
-      var overallTotalHtml = '<div style="text-align:right; font-weight:bold; margin-top:5mm;">Totalt för alla linjer inkl. moms: ' + roundCeil2(multiOverallTotal).toFixed(2) + ' SEK</div>';
+      // polylines.length >= 2 -> additive totals
+      var metraturaElMulti = document.getElementById("metratura");
+      var angoliElMulti = document.getElementById("angoli");
+      var metersTotal = metraturaElMulti ? parseFloat(metraturaElMulti.value) || 0 : 0;
+      var anglesTotal = angoliElMulti ? parseInt(angoliElMulti.value, 10) || 0 : 0;
 
-      var multiComps = [];
-      for (var idx = 0; idx < polylines.length; idx++) {
-        var p = polylines[idx];
-        var d = calculateLengthAndAngles(p);
-        var gatesForThisPoly = idx === 0 ? gateCount : 0;
-        var comp;
-        if (selectedFenceType === "animal") {
-          comp = electrifyCheckedMulti
-            ? generateElectrifiedAnimalFenceRows(d.length, d.angles, gatesForThisPoly)
-            : generateDJURSTANGSELRows(d.length, d.angles, gatesForThisPoly);
+      if (selectedFenceType === "animal") {
+        var animalConfigsMulti = typeof getSelectedAnimalConfigs === "function" ? getSelectedAnimalConfigs() : [];
+        if (animalConfigsMulti.length === 0) {
+          var compMultiDef = generateDJURSTANGSELRows(metersTotal, anglesTotal, gateCount);
+          var lineTitleMultiDef = "<h3>Alla linjer (totalt)</h3>";
+          var lineParamsMultiDef = "<p>Totallängd: " + roundCeil2(metersTotal).toFixed(2) + " m, Vinklar: " + anglesTotal + ", Grindar: " + gateCount + "</p>";
+          var multiPageHtmlsDef = buildPagesForTable(compMultiDef.rowsHtml, compMultiDef.subtotal || 0, 1, 0, { mapHtml: mapBlockHtml, lineTitle: lineTitleMultiDef, lineParams: lineParamsMultiDef });
+          multiPageHtmlsDef.forEach(function (html) { pages.push({ html: html, subtotal: (compMultiDef.subtotal || 0) * 1.25 }); });
         } else {
-          comp = generateComponentRows(d.length, d.angles, colorSelect, heightSelect, plintChecked, selectedFenceType, idx === 0 ? gateCount : 0);
+          animalConfigsMulti.forEach(function (cfg, idx) {
+            var compMultiA = typeof getAnimalFenceRows === "function"
+              ? getAnimalFenceRows(cfg.animalKey, cfg.electrified, metersTotal, anglesTotal, gateCount)
+              : (cfg.electrified ? generateElectrifiedAnimalFenceRows(metersTotal, anglesTotal, gateCount) : generateDJURSTANGSELRows(metersTotal, anglesTotal, gateCount));
+            var lineTitleMultiA = "<h3>" + (cfg.animalLabel || cfg.animalKey) + " (" + (cfg.electrified ? "elektrifierad" : "ej elektrifierad") + ") – alla linjer</h3>";
+            var lineParamsMultiA = "<p>Totallängd: " + roundCeil2(metersTotal).toFixed(2) + " m, Vinklar: " + anglesTotal + ", Grindar: " + gateCount + (cfg.electrified ? getAnimalWireStolpParams() : "") + "</p>";
+            var optsMulti = { lineTitle: lineTitleMultiA, lineParams: lineParamsMultiA };
+            if (idx === 0) optsMulti.mapHtml = mapBlockHtml;
+            var multiPageHtmlsA = buildPagesForTable(compMultiA.rowsHtml, compMultiA.subtotal || 0, 1, 0, optsMulti);
+            multiPageHtmlsA.forEach(function (html) { pages.push({ html: html, subtotal: (compMultiA.subtotal || 0) * 1.25 }); });
+          });
         }
-        multiComps.push({
-          comp: comp,
-          lineTitle: "<h3>Linje " + (idx + 1) + "</h3>",
-          lineParams: selectedFenceType === "villa"
-            ? "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>"
-            : "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + "</p>"
-        });
-      }
-
-      var pageStart = 1;
-      var totalChunks = 0;
-      for (var t = 0; t < multiComps.length; t++) {
-        var rows = parseTableRows(multiComps[t].comp.rowsHtml);
-        totalChunks += countTableChunks(rows);
-      }
-      for (var u = 0; u < multiComps.length; u++) {
-        var mc = multiComps[u];
-        var opts = {
-          mapHtml: u === 0 ? mapBlockHtml : "",
-          lineTitle: mc.lineTitle,
-          lineParams: mc.lineParams,
-          overallTotalHtml: u === multiComps.length - 1 ? overallTotalHtml : ""
-        };
-        var multiPageHtmls = buildPagesForTable(mc.comp.rowsHtml, mc.comp.subtotal, pageStart, totalChunks, opts);
-        pageStart += multiPageHtmls.length;
-        multiPageHtmls.forEach(function (html) { pages.push({ html: html, subtotal: mc.comp.subtotal * 1.25 }); });
+      } else {
+        var comp = generateComponentRows(metersTotal, anglesTotal, colorSelect, heightSelect, plintChecked, selectedFenceType, gateCount);
+        var lineTitleMulti = "<h3>Alla linjer (totalt)</h3>";
+        var lineParamsMulti = "<p>Totallängd: " + roundCeil2(metersTotal).toFixed(2) + " m, Vinklar: " + anglesTotal + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + ", Grindar: " + gateCount + "</p>";
+        var multiPageHtmls = buildPagesForTable(comp.rowsHtml, comp.subtotal || 0, 1, 0, { mapHtml: mapBlockHtml, lineTitle: lineTitleMulti, lineParams: lineParamsMulti });
+        multiPageHtmls.forEach(function (html) { pages.push({ html: html, subtotal: (comp.subtotal || 0) * 1.25 }); });
       }
     }
   }

@@ -33,6 +33,8 @@ function skickaOfferTillOss() {
   var c = window.customerData || {};
   var name = [c.name, c.surname].filter(Boolean).join(" ") || "Kund";
   var message = "Hej,\n\nJag är intresserad av erbjudandet och vill gärna gå vidare. Vänligen kontakta mig.\n\nMed vänliga hälsningar,\n" + name;
+  if (c.customerTypeLabel) message += "\nKundtyp: " + c.customerTypeLabel;
+  if (c.idNumber) message += "\n" + (c.customerType === "company" ? "Organisationsnummer" : "Personnummer") + ": " + c.idNumber;
   if (c.phone) message += "\nTelefon: " + c.phone;
   if (c.email) message += "\nE-post: " + c.email;
 
