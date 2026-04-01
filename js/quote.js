@@ -379,7 +379,7 @@ function generaPreventivMultiPagina() {
     return (
       '<div class="bottom-info">' +
       '<p><strong>Observera:</strong></p>' +
-      '<p>Eventuell fraktkostnad tillkommer med 1200 SEK + moms.</p>' +
+      '<p>För information om frakt, se vår officiella sida: <a href="https://www.greenfence.se/villkor-info" target="_blank" rel="noopener noreferrer">www.greenfence.se/villkor-info</a>.</p>' +
       '<p>Montering ingår inte</p>' +
       "</div>" +
       '<div class="invoice-footer">' +
@@ -511,7 +511,7 @@ function generaPreventivMultiPagina() {
         if (animalConfigsMulti.length === 0) {
           var compMultiDef = generateDJURSTANGSELRows(metersTotal, anglesTotal, gateCount);
           var lineTitleMultiDef = "<h3>Alla linjer (totalt)</h3>";
-          var lineParamsMultiDef = "<p>Totallängd: " + roundCeil2(metersTotal).toFixed(2) + " m, Vinklar: " + anglesTotal + ", Grindar: " + gateCount + "</p>";
+          var lineParamsMultiDef = "<p>Totallängd: " + roundCeil2(metersTotal).toFixed(2) + " m, Vinklar: " + anglesTotal + "</p>";
           var multiPageHtmlsDef = buildPagesForTable(compMultiDef.rowsHtml, compMultiDef.subtotal || 0, 1, 0, { mapHtml: mapBlockHtml, lineTitle: lineTitleMultiDef, lineParams: lineParamsMultiDef });
           multiPageHtmlsDef.forEach(function (html) { pages.push({ html: html, subtotal: (compMultiDef.subtotal || 0) * 1.25 }); });
         } else {
@@ -520,7 +520,7 @@ function generaPreventivMultiPagina() {
               ? getAnimalFenceRows(cfg.animalKey, cfg.electrified, metersTotal, anglesTotal, gateCount)
               : (cfg.electrified ? generateElectrifiedAnimalFenceRows(metersTotal, anglesTotal, gateCount) : generateDJURSTANGSELRows(metersTotal, anglesTotal, gateCount));
             var lineTitleMultiA = "<h3>" + (cfg.animalLabel || cfg.animalKey) + " (" + (cfg.electrified ? "elektrifierad" : "ej elektrifierad") + ") – alla linjer</h3>";
-            var lineParamsMultiA = "<p>Totallängd: " + roundCeil2(metersTotal).toFixed(2) + " m, Vinklar: " + anglesTotal + ", Grindar: " + gateCount + (cfg.electrified ? getAnimalWireStolpParams() : "") + "</p>";
+            var lineParamsMultiA = "<p>Totallängd: " + roundCeil2(metersTotal).toFixed(2) + " m, Vinklar: " + anglesTotal + (cfg.electrified ? getAnimalWireStolpParams() : "") + "</p>";
             var optsMulti = { lineTitle: lineTitleMultiA, lineParams: lineParamsMultiA };
             if (idx === 0) optsMulti.mapHtml = mapBlockHtml;
             var multiPageHtmlsA = buildPagesForTable(compMultiA.rowsHtml, compMultiA.subtotal || 0, 1, 0, optsMulti);
@@ -530,7 +530,7 @@ function generaPreventivMultiPagina() {
       } else {
         var comp = generateComponentRows(metersTotal, anglesTotal, colorSelect, heightSelect, plintChecked, selectedFenceType, gateCount);
         var lineTitleMulti = "<h3>Alla linjer (totalt)</h3>";
-        var lineParamsMulti = "<p>Totallängd: " + roundCeil2(metersTotal).toFixed(2) + " m, Vinklar: " + anglesTotal + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + ", Grindar: " + gateCount + "</p>";
+        var lineParamsMulti = "<p>Totallängd: " + roundCeil2(metersTotal).toFixed(2) + " m, Vinklar: " + anglesTotal + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>";
         var multiPageHtmls = buildPagesForTable(comp.rowsHtml, comp.subtotal || 0, 1, 0, { mapHtml: mapBlockHtml, lineTitle: lineTitleMulti, lineParams: lineParamsMulti });
         multiPageHtmls.forEach(function (html) { pages.push({ html: html, subtotal: (comp.subtotal || 0) * 1.25 }); });
       }
