@@ -131,3 +131,14 @@ EmailJS free tier is enough for low volume (e.g. 200 emails/month). For more, se
 
 If your EmailJS plan does not allow attachments, the app now retries automatically **without** `pdf_attachment`.
 The lead is still sent (name, email, phone, message), and the user is prompted to download the PDF locally.
+
+Temporary test mode is also available in `index.html`:
+
+```js
+window.EMAILJS = {
+  // ...
+  disableAttachment: true
+};
+```
+
+When `disableAttachment` is `true`, the app skips PDF generation and sends only text fields. Use this to verify EmailJS configuration quickly on free plans.

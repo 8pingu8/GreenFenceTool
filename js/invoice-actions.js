@@ -156,6 +156,16 @@ function validateOfferBeforeSend() {
   return "";
 }
 
+function formatEmailJsError(err) {
+  if (!err) return "okänt fel";
+  var status = err.status || err.statusCode || "";
+  var text = err.text || err.message || "";
+  var details = [];
+  if (status) details.push("status: " + status);
+  if (text) details.push("info: " + text);
+  return details.length ? details.join(" | ") : String(err);
+}
+
 function skickaOfferTillOss() {
   var config = window.EMAILJS || {};
   if (!config.publicKey || !config.serviceId || !config.templateId ||
@@ -207,48 +217,60 @@ function skickaOfferTillOss() {
   if (c.idNumber) message += "\n" + (c.customerType === "company" ? "Organisationsnummer" : "Personnummer") + ": " + c.idNumber;
   if (c.phone) message += "\nTelefon: " + c.phone;
   if (c.email) message += "\nE-post: " + c.email;
-
-  var pdfOpt = {
-    margin: 0,
-    image: { type: "jpeg", quality: PDF_IMAGE_QUALITY },
-    html2canvas: { scale: PDF_RENDER_SCALE, backgroundColor: "#ffffff", useCORS: true, logging: false },
-    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-    pagebreak: { mode: ["css", "legacy"], after: [".page"], avoid: ["tr", "thead", "tbody"] }
+  var disableAttachment = !!config.disableAttachment;
+  var baseTemplateParams = {
+    from_name: name,
+    customer_email: c.email || "",
+    customer_phone: c.phone || "",
+    message: message,
+    captcha_token: humanCheckState.token || "",
+    captcha_bypass: humanCheckBypassEnabled ? "true" : "false",
+    captcha_bypass_reason: humanCheckBypassEnabled ? humanCheckBypassReason : ""
   };
+  var sendPromise;
 
-  html2pdf()
-    .set(pdfOpt)
-    .from(invoiceEl)
-    .toPdf()
-    .output("datauristring")
-    .then(function (dataUrl) {
-      var base64 = (dataUrl || "").replace(/^data:application\/pdf;base64,/, "");
-      if (!base64) return Promise.reject(new Error("Kunde inte skapa PDF."));
-      var baseTemplateParams = {
-        from_name: name,
-        customer_email: c.email || "",
-        customer_phone: c.phone || "",
-        message: message,
-        captcha_token: humanCheckState.token || "",
-        captcha_bypass: humanCheckBypassEnabled ? "true" : "false",
-        captcha_bypass_reason: humanCheckBypassEnabled ? humanCheckBypassReason : ""
-      };
-      var withAttachmentParams = Object.assign({}, baseTemplateParams, { pdf_attachment: base64 });
-      return emailjs
-        .send(config.serviceId, config.templateId, withAttachmentParams, { publicKey: config.publicKey })
-        .then(function () {
-          return { sentWithoutAttachment: false };
-        })
-        .catch(function (firstErr) {
-          console.warn("EmailJS attachment send failed, retrying without attachment:", firstErr);
-          var fallbackParams = Object.assign({}, baseTemplateParams, {
-            message: message + "\n\nOBS: PDF-bilaga kunde inte bifogas automatiskt (EmailJS-plan). Kunden kan ladda ner PDF från offertsidan."
+  if (disableAttachment) {
+    sendPromise = emailjs
+      .send(config.serviceId, config.templateId, baseTemplateParams, { publicKey: config.publicKey })
+      .then(function () {
+        return { sentWithoutAttachment: true, noAttachmentMode: true };
+      });
+  } else {
+    var pdfOpt = {
+      margin: 0,
+      image: { type: "jpeg", quality: PDF_IMAGE_QUALITY },
+      html2canvas: { scale: PDF_RENDER_SCALE, backgroundColor: "#ffffff", useCORS: true, logging: false },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ["css", "legacy"], after: [".page"], avoid: ["tr", "thead", "tbody"] }
+    };
+
+    sendPromise = html2pdf()
+      .set(pdfOpt)
+      .from(invoiceEl)
+      .toPdf()
+      .output("datauristring")
+      .then(function (dataUrl) {
+        var base64 = (dataUrl || "").replace(/^data:application\/pdf;base64,/, "");
+        if (!base64) throw new Error("Kunde inte skapa PDF.");
+        var withAttachmentParams = Object.assign({}, baseTemplateParams, { pdf_attachment: base64 });
+        return emailjs
+          .send(config.serviceId, config.templateId, withAttachmentParams, { publicKey: config.publicKey })
+          .then(function () {
+            return { sentWithoutAttachment: false, noAttachmentMode: false };
+          })
+          .catch(function (firstErr) {
+            console.warn("EmailJS attachment send failed, retrying without attachment:", firstErr);
+            var fallbackParams = Object.assign({}, baseTemplateParams, {
+              message: message + "\n\nOBS: PDF-bilaga kunde inte bifogas automatiskt (EmailJS-plan). Kunden kan ladda ner PDF från offertsidan."
+            });
+            return emailjs.send(config.serviceId, config.templateId, fallbackParams, { publicKey: config.publicKey }).then(function () {
+              return { sentWithoutAttachment: true, noAttachmentMode: false };
+            });
           });
-          return emailjs.send(config.serviceId, config.templateId, fallbackParams, { publicKey: config.publicKey }).then(function () {
-            return { sentWithoutAttachment: true };
-          });
-        });
-    })
+      });
+  }
+
+  sendPromise
     .then(function (result) {
       markOfferSentNow();
       if (typeof window.turnstile !== "undefined" && humanCheckState.widgetId !== null) {
@@ -265,7 +287,7 @@ function skickaOfferTillOss() {
     .catch(function (err) {
       cleanup();
       console.warn("EmailJS error:", err);
-      alert("Kunde inte skicka e-post. Kontrollera att EmailJS är konfigurerat (se EMAILJS_SETUP.md) eller försök igen senare.");
+      alert("Kunde inte skicka e-post. Detaljer: " + formatEmailJsError(err));
     });
 }
 
