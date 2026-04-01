@@ -5,6 +5,10 @@ var OFFER_SEND_COOLDOWN_MS = 60000;
 var OFFER_MIN_FILL_TIME_MS = 8000;
 var humanCheckState = { widgetId: null, token: "" };
 var humanCheckRenderAttempts = 0;
+var humanCheckAutoRetryCount = 0;
+var HUMAN_CHECK_MAX_AUTO_RETRIES = 5;
+var humanCheckBypassEnabled = false;
+var humanCheckBypassReason = "";
 
 function markOfferSentNow() {
   try {
@@ -34,6 +38,7 @@ function renderHumanCheckWidget() {
   if (!target) return;
   if (retryBtn && !retryBtn.dataset.bound) {
     retryBtn.addEventListener("click", function () {
+      humanCheckAutoRetryCount = 0;
       renderHumanCheckWidget();
     });
     retryBtn.dataset.bound = "1";
@@ -42,6 +47,8 @@ function renderHumanCheckWidget() {
   target.innerHTML = "";
   humanCheckState.widgetId = null;
   humanCheckState.token = "";
+  humanCheckBypassEnabled = false;
+  humanCheckBypassReason = "";
   humanCheckRenderAttempts += 1;
 
   var config = window.EMAILJS || {};
@@ -74,6 +81,8 @@ function renderHumanCheckWidget() {
       appearance: "always",
       callback: function (token) {
         humanCheckState.token = token || "";
+        humanCheckBypassEnabled = false;
+        humanCheckBypassReason = "";
         if (help) help.textContent = "Säkerhetskontroll klar.";
       },
       "expired-callback": function () {
@@ -82,9 +91,33 @@ function renderHumanCheckWidget() {
       },
       "error-callback": function (errorCode) {
         humanCheckState.token = "";
-        if (help) help.textContent = "Säkerhetskontrollen misslyckades (" + String(errorCode || "okänd kod") + "). Kontrollera host/domain i Turnstile.";
+        var code = String(errorCode || "");
+        var retryable = /^300/.test(code) || /^600/.test(code);
+        if (retryable && humanCheckAutoRetryCount < HUMAN_CHECK_MAX_AUTO_RETRIES) {
+          humanCheckAutoRetryCount += 1;
+          var waitMs = Math.min(8000, Math.pow(2, humanCheckAutoRetryCount - 1) * 1000);
+          if (help) {
+            help.textContent = "Säkerhetskontrollen misslyckades (" + code + "). Försöker igen om " + Math.ceil(waitMs / 1000) + " sekunder...";
+          }
+          setTimeout(function () {
+            renderHumanCheckWidget();
+          }, waitMs);
+          return;
+        }
+        if (retryable) {
+          humanCheckBypassEnabled = true;
+          humanCheckBypassReason = code || "turnstile_retry_exhausted";
+          if (help) {
+            help.textContent = "CAPTCHA kunde inte verifieras efter flera försök (" + (code || "okänd kod") + "). Du kan ändå skicka offerten nu.";
+          }
+          return;
+        }
+        if (help) {
+          help.textContent = "Säkerhetskontrollen misslyckades (" + (code || "okänd kod") + "). Klicka 'Ladda om säkerhetskontroll' eller prova annan webbläsare/nätverk.";
+        }
       }
     });
+    humanCheckAutoRetryCount = 0;
     humanCheckRenderAttempts = 0;
     if (help) help.textContent = "Verifiera att du är människa innan du skickar.";
     setTimeout(function () {
@@ -116,6 +149,7 @@ function validateOfferBeforeSend() {
   if (phone.replace(/[^\d+]/g, "").length < 7) return "Ange ett giltigt telefonnummer innan du skickar.";
   if (!startedAt || fillTime < OFFER_MIN_FILL_TIME_MS) return "Vänta några sekunder och försök sedan skicka igen.";
   if (cooldown > 0) return "Vänta " + Math.ceil(cooldown / 1000) + " sekunder innan du skickar igen.";
+  if (!humanCheckState.token && humanCheckBypassEnabled) return "";
   if (!humanCheckState.token) return "Bekräfta säkerhetskontrollen (CAPTCHA) innan du skickar.";
   return "";
 }
@@ -194,6 +228,8 @@ function skickaOfferTillOss() {
         customer_phone: c.phone || "",
         message: message,
         captcha_token: humanCheckState.token || "",
+        captcha_bypass: humanCheckBypassEnabled ? "true" : "false",
+        captcha_bypass_reason: humanCheckBypassEnabled ? humanCheckBypassReason : "",
         pdf_attachment: base64
       };
       return emailjs.send(config.serviceId, config.templateId, templateParams, { publicKey: config.publicKey });

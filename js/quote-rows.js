@@ -188,13 +188,13 @@ function defaultNonElectrifiedAnimalRows(metratura, angoli, antalTragrindar) {
 function getAnimalFenceRows(animalKey, electrified, metratura, angoli, antalTragrindar) {
   switch (animalKey) {
     case "cavallo":
-      return defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
+      return electrified ? defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar) : defaultNonElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
     case "mucca":
       return electrified ? defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar) : defaultNonElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
     case "pecora":
       return electrified ? defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar) : defaultNonElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
     case "maiale":
-      return defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
+      return electrified ? defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar) : defaultNonElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
     case "cervo_liten":
       return electrified ? defaultElectrifiedAnimalRows(metratura, angoli, antalTragrindar) : defaultNonElectrifiedAnimalRows(metratura, angoli, antalTragrindar);
     case "cervo_stor":

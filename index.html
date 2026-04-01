@@ -97,12 +97,16 @@
       </div>
     </div>
       
-     <div style="width: 100%; display: flex; justify-content: center; margin-top: 10px;">
+     <div style="width: 100%; display: flex; flex-direction: column; align-items: center; margin-top: 10px;">
      <div style="display: flex; align-items: center; gap: 6px;">
      <input type="checkbox" id="plintbetong" style="transform: scale(1.2)" />
      <label for="plintbetong" style="cursor: pointer; white-space: nowrap;">
       Lägg till Plintbetong (2 st/stolpe)
      </label>
+     <span class="plint-tooltip-wrap">
+       <i class="fas fa-info-circle plint-tooltip-icon" aria-hidden="true"></i>
+       <span class="plint-tooltip-text">Plintbetong ger stolparna ett stabilt fundament utan att behöva gjuta. Rekommenderas vid lös eller mjuk mark för att förhindra att stolparna rör sig över tid.</span>
+     </span>
      </div>
      </div>
 
@@ -123,27 +127,27 @@
         <div class="animal-options-list">
           <div class="animal-row" data-animal="cavallo">
             <input type="checkbox" id="animal-cavallo" name="animal-cavallo" />
-            <label for="animal-cavallo">Cavallo</label>
-            <span class="animal-electrify-note">(endast elektrifierad)</span>
+            <label for="animal-cavallo">Häst</label>
+            <span class="animal-electrify-wrap"><input type="checkbox" id="animal-cavallo-elec" name="animal-cavallo-elec" /><label for="animal-cavallo-elec">Elektrifierad</label></span>
           </div>
           <div class="animal-row" data-animal="mucca">
             <input type="checkbox" id="animal-mucca" name="animal-mucca" />
-            <label for="animal-mucca">Mucca</label>
+            <label for="animal-mucca">Ko</label>
             <span class="animal-electrify-wrap"><input type="checkbox" id="animal-mucca-elec" name="animal-mucca-elec" /><label for="animal-mucca-elec">Elektrifierad</label></span>
           </div>
           <div class="animal-row" data-animal="pecora">
             <input type="checkbox" id="animal-pecora" name="animal-pecora" />
-            <label for="animal-pecora">Pecora</label>
+            <label for="animal-pecora">Får</label>
             <span class="animal-electrify-wrap"><input type="checkbox" id="animal-pecora-elec" name="animal-pecora-elec" /><label for="animal-pecora-elec">Elektrifierad</label></span>
           </div>
           <div class="animal-row" data-animal="maiale">
             <input type="checkbox" id="animal-maiale" name="animal-maiale" />
-            <label for="animal-maiale">Maiale</label>
-            <span class="animal-electrify-note">(endast elektrifierad)</span>
+            <label for="animal-maiale">Gris</label>
+            <span class="animal-electrify-wrap"><input type="checkbox" id="animal-maiale-elec" name="animal-maiale-elec" /><label for="animal-maiale-elec">Elektrifierad</label></span>
           </div>
           <div class="animal-row animal-row-cervo" data-animal="cervo">
             <input type="checkbox" id="animal-cervo" name="animal-cervo" />
-            <label for="animal-cervo">Cervo</label>
+            <label for="animal-cervo">Hjort</label>
             <span class="animal-cervo-type">
               <input type="radio" id="cervo-liten" name="cervo-type" value="liten" checked />
               <label for="cervo-liten">Liten</label>
@@ -154,7 +158,7 @@
           </div>
           <div class="animal-row" data-animal="cinghiale">
             <input type="checkbox" id="animal-cinghiale" name="animal-cinghiale" />
-            <label for="animal-cinghiale">Cinghiale</label>
+            <label for="animal-cinghiale">Vildsvin</label>
             <span class="animal-electrify-wrap"><input type="checkbox" id="animal-cinghiale-elec" name="animal-cinghiale-elec" /><label for="animal-cinghiale-elec">Elektrifierad</label></span>
           </div>
         </div>

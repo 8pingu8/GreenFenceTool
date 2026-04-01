@@ -124,12 +124,12 @@ if (map) map.invalidateSize(); // ricalcola la mappa se il container è visibile
 function getSelectedAnimalConfigs() {
   const configs = [];
   const animals = [
-    { key: "cavallo", label: "Cavallo", electrifiedOnly: true },
-    { key: "mucca", label: "Mucca", electrifiedOnly: false },
-    { key: "pecora", label: "Pecora", electrifiedOnly: false },
-    { key: "maiale", label: "Maiale", electrifiedOnly: true },
-    { key: "cervo", label: "Cervo", cervo: true },
-    { key: "cinghiale", label: "Cinghiale", electrifiedOnly: false }
+    { key: "cavallo", label: "Häst", electrifiedOnly: false },
+    { key: "mucca", label: "Ko", electrifiedOnly: false },
+    { key: "pecora", label: "Får", electrifiedOnly: false },
+    { key: "maiale", label: "Gris", electrifiedOnly: false },
+    { key: "cervo", label: "Hjort", cervo: true },
+    { key: "cinghiale", label: "Vildsvin", electrifiedOnly: false }
   ];
   animals.forEach(function (a) {
     const cb = document.getElementById("animal-" + a.key);
@@ -140,7 +140,7 @@ function getSelectedAnimalConfigs() {
       const electrified = !stor && elecCb && elecCb.checked;
       configs.push({
         animalKey: stor ? "cervo_stor" : "cervo_liten",
-        animalLabel: stor ? "Cervo (stor)" : "Cervo (liten)",
+        animalLabel: stor ? "Hjort (stor)" : "Hjort (liten)",
         electrified: electrified
       });
       return;
@@ -163,17 +163,23 @@ function getAnimalWireStolpParams() {
 
 // Animal options: show electrified checkbox only when that animal is selected; Cervo Liten/Stor and elec only when Cervo selected; wire/stolp when any electrified
 function updateAnimalOptionsVisibility() {
+  const cavalloChecked = document.getElementById("animal-cavallo") && document.getElementById("animal-cavallo").checked;
   const muccaChecked = document.getElementById("animal-mucca") && document.getElementById("animal-mucca").checked;
   const pecoraChecked = document.getElementById("animal-pecora") && document.getElementById("animal-pecora").checked;
+  const maialeChecked = document.getElementById("animal-maiale") && document.getElementById("animal-maiale").checked;
   const cinghialeChecked = document.getElementById("animal-cinghiale") && document.getElementById("animal-cinghiale").checked;
   const cervoChecked = document.getElementById("animal-cervo") && document.getElementById("animal-cervo").checked;
   const cervoStor = document.getElementById("cervo-stor") && document.getElementById("cervo-stor").checked;
 
+  const cavalloWrap = document.querySelector('.animal-row[data-animal="cavallo"] .animal-electrify-wrap');
   const muccaWrap = document.querySelector('.animal-row[data-animal="mucca"] .animal-electrify-wrap');
   const pecoraWrap = document.querySelector('.animal-row[data-animal="pecora"] .animal-electrify-wrap');
+  const maialeWrap = document.querySelector('.animal-row[data-animal="maiale"] .animal-electrify-wrap');
   const cinghialeWrap = document.querySelector('.animal-row[data-animal="cinghiale"] .animal-electrify-wrap');
+  if (cavalloWrap) cavalloWrap.style.display = cavalloChecked ? "" : "none";
   if (muccaWrap) muccaWrap.style.display = muccaChecked ? "" : "none";
   if (pecoraWrap) pecoraWrap.style.display = pecoraChecked ? "" : "none";
+  if (maialeWrap) maialeWrap.style.display = maialeChecked ? "" : "none";
   if (cinghialeWrap) cinghialeWrap.style.display = cinghialeChecked ? "" : "none";
 
   const cervoTypeEl = document.querySelector('.animal-row-cervo .animal-cervo-type');
@@ -181,17 +187,12 @@ function updateAnimalOptionsVisibility() {
   if (cervoTypeEl) cervoTypeEl.style.display = cervoChecked ? "" : "none";
   if (cervoElecWrap) cervoElecWrap.style.display = cervoChecked && !cervoStor ? "" : "none";
 
-  const cavalloNote = document.querySelector('.animal-row[data-animal="cavallo"] .animal-electrify-note');
-  const maialeNote = document.querySelector('.animal-row[data-animal="maiale"] .animal-electrify-note');
-  if (cavalloNote) cavalloNote.style.display = (document.getElementById("animal-cavallo") && document.getElementById("animal-cavallo").checked) ? "" : "none";
-  if (maialeNote) maialeNote.style.display = (document.getElementById("animal-maiale") && document.getElementById("animal-maiale").checked) ? "" : "none";
-
   let anyElectrified = false;
+  if (cavalloChecked && document.getElementById("animal-cavallo-elec") && document.getElementById("animal-cavallo-elec").checked) anyElectrified = true;
   if (muccaChecked && document.getElementById("animal-mucca-elec") && document.getElementById("animal-mucca-elec").checked) anyElectrified = true;
   if (pecoraChecked && document.getElementById("animal-pecora-elec") && document.getElementById("animal-pecora-elec").checked) anyElectrified = true;
+  if (maialeChecked && document.getElementById("animal-maiale-elec") && document.getElementById("animal-maiale-elec").checked) anyElectrified = true;
   if (cinghialeChecked && document.getElementById("animal-cinghiale-elec") && document.getElementById("animal-cinghiale-elec").checked) anyElectrified = true;
-  if (document.getElementById("animal-cavallo") && document.getElementById("animal-cavallo").checked) anyElectrified = true;
-  if (document.getElementById("animal-maiale") && document.getElementById("animal-maiale").checked) anyElectrified = true;
   if (cervoChecked && document.getElementById("cervo-liten") && document.getElementById("cervo-liten").checked && document.getElementById("animal-cervo-elec") && document.getElementById("animal-cervo-elec").checked) anyElectrified = true;
 
   const electrifiedOpts = document.getElementById("animal-electrified-options");
@@ -220,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (companyRadio) companyRadio.addEventListener("change", updateCustomerIdHint);
 
   ["animal-cavallo", "animal-mucca", "animal-pecora", "animal-maiale", "animal-cervo", "animal-cinghiale",
-   "animal-mucca-elec", "animal-pecora-elec", "animal-cervo-elec", "animal-cinghiale-elec"].forEach(function (id) {
+   "animal-cavallo-elec", "animal-mucca-elec", "animal-pecora-elec", "animal-maiale-elec", "animal-cervo-elec", "animal-cinghiale-elec"].forEach(function (id) {
     const el = document.getElementById(id);
     if (el) el.addEventListener("change", updateAnimalOptionsVisibility);
   });
