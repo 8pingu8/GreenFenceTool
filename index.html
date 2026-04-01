@@ -39,7 +39,7 @@
           <span class="fence-type-title">Villastängsel</span>
           <span class="fence-type-animals"></span>
         </button>
-        <button type="button" class="fence-type-btn" data-fence-type="animal" onclick="selectFenceType('animal')" aria-label="Välj djurstaket" aria-pressed="false">
+        <button type="button" class="fence-type-btn" data-fence-type="animal" onclick="selectFenceType('animal')" aria-label="Välj djurstaket (kommer snart)" aria-pressed="false" disabled title="Kommer snart">
           <span class="fence-type-icon">
             <img src="images/Skärmbild 2025-12-22 113855.png" alt="" class="fence-type-img" aria-hidden="true" />
           </span>
@@ -193,8 +193,9 @@
         <p class="map-instructions-intro">Sök din adress eller rita staketet direkt på kartan. Så här gör du:</p>
         <ul class="map-instructions-list">
           <li><strong>Sök:</strong> Använd sökfältet uppe till höger på kartan – skriv adress eller plats och välj ett förslag. Kartan flyttar sig till valt ställe.</li>
-          <li><strong>✏️ Ny polylinje:</strong> Klicka för att börja rita ett nytt staket.</li>
-          <li><strong>Punkter:</strong> Klicka på kartan för varje hörn eller ändpunkt. Du kan dra punkterna för att justera.</li>
+          <li><strong>✏️ Ny polylinje:</strong> Klicka på pennan för att starta en ny polylinje (nytt staket). Varje gång du klickar på pennan startas en ny linje.</li>
+          <li><strong>Punkter:</strong> Efter att du valt pennan, klicka sedan direkt på kartan för att lägga till punkter kontinuerligt (en punkt per klick). Du kan dra punkterna för att justera.</li>
+          <li><strong>Valt verktyg:</strong> Knappen för det valda verktyget visas lite gråare så att du ser vilket läge som är aktivt.</li>
           <li><strong>🔗 Stäng staket:</strong> När du är klar, klicka för att koppla sista punkten till den första (staket blir slutet).</li>
           <li><strong>Grindverktyg:</strong> Djurstängsel: använd 🚪 (trägrind). Villastängsel: använd E (enkel grind) eller D (dubbel grind). Klicka på knappen, sedan på kartan – om du klickar nära staketlinjen snappar grinden till linjen. Högerklicka på en grind för att ta bort den.</li>
           <li><strong>↩️ Ångra:</strong> Tar bort senaste åtgärd (en punkt, en stängning av staket eller en grind) så att du kan rätta ett misstag utan att rensa allt.</li>

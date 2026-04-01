@@ -939,6 +939,30 @@
     height: 4px;
     background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-green-light) 100%);
   }
+  .fence-type-btn:disabled {
+    cursor: not-allowed;
+    border-color: #d6dbe1;
+    background: #f1f3f5;
+    color: #5f6770;
+    box-shadow: none;
+    transform: none;
+    opacity: 1;
+  }
+  .fence-type-btn:disabled .fence-type-title,
+  .fence-type-btn:disabled .fence-type-animals {
+    color: #5f6770;
+  }
+  .fence-type-btn:disabled .fence-type-icon {
+    color: #5f6770;
+    filter: grayscale(1);
+  }
+  .fence-type-btn:disabled:hover,
+  .fence-type-btn:disabled:focus {
+    border-color: #d6dbe1;
+    background: #f1f3f5;
+    box-shadow: none;
+    transform: none;
+  }
   .fence-type-icon {
     font-size: 32px;
     color: var(--primary-green);
