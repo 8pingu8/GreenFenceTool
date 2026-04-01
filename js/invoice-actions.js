@@ -30,7 +30,14 @@ function validateEmailAddress(email) {
 function renderHumanCheckWidget() {
   var target = document.getElementById("human-check-widget");
   var help = document.getElementById("human-check-help");
+  var retryBtn = document.getElementById("human-check-retry-btn");
   if (!target) return;
+  if (retryBtn && !retryBtn.dataset.bound) {
+    retryBtn.addEventListener("click", function () {
+      renderHumanCheckWidget();
+    });
+    retryBtn.dataset.bound = "1";
+  }
 
   target.innerHTML = "";
   humanCheckState.widgetId = null;
@@ -62,6 +69,9 @@ function renderHumanCheckWidget() {
   try {
     humanCheckState.widgetId = window.turnstile.render(target, {
       sitekey: siteKey,
+      theme: "light",
+      size: "normal",
+      appearance: "always",
       callback: function (token) {
         humanCheckState.token = token || "";
         if (help) help.textContent = "Säkerhetskontroll klar.";
@@ -77,6 +87,11 @@ function renderHumanCheckWidget() {
     });
     humanCheckRenderAttempts = 0;
     if (help) help.textContent = "Verifiera att du är människa innan du skickar.";
+    setTimeout(function () {
+      if (!target.querySelector("iframe") && !humanCheckState.token && help) {
+        help.textContent = "CAPTCHA visas inte. Kontrollera adblocker/skydd i webbläsaren eller klicka 'Ladda om säkerhetskontroll'.";
+      }
+    }, 1200);
   } catch (err) {
     humanCheckState.widgetId = null;
     humanCheckState.token = "";
