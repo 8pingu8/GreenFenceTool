@@ -126,3 +126,8 @@ The script sends these template parameters (use the same names in your template 
 ## Free tier
 
 EmailJS free tier is enough for low volume (e.g. 200 emails/month). For more, see their pricing.
+
+### Note about attachments on free plans
+
+If your EmailJS plan does not allow attachments, the app now retries automatically **without** `pdf_attachment`.
+The lead is still sent (name, email, phone, message), and the user is prompted to download the PDF locally.

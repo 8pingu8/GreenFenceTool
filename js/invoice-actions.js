@@ -9,6 +9,8 @@ var humanCheckAutoRetryCount = 0;
 var HUMAN_CHECK_MAX_AUTO_RETRIES = 5;
 var humanCheckBypassEnabled = false;
 var humanCheckBypassReason = "";
+var PDF_IMAGE_QUALITY = 0.84;
+var PDF_RENDER_SCALE = 1.4;
 
 function markOfferSentNow() {
   try {
@@ -208,8 +210,8 @@ function skickaOfferTillOss() {
 
   var pdfOpt = {
     margin: 0,
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false },
+    image: { type: "jpeg", quality: PDF_IMAGE_QUALITY },
+    html2canvas: { scale: PDF_RENDER_SCALE, backgroundColor: "#ffffff", useCORS: true, logging: false },
     jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
     pagebreak: { mode: ["css", "legacy"], after: [".page"], avoid: ["tr", "thead", "tbody"] }
   };
@@ -221,27 +223,44 @@ function skickaOfferTillOss() {
     .output("datauristring")
     .then(function (dataUrl) {
       var base64 = (dataUrl || "").replace(/^data:application\/pdf;base64,/, "");
-      if (!base64) { cleanup(); alert("Kunde inte skapa PDF."); return; }
-      var templateParams = {
+      if (!base64) return Promise.reject(new Error("Kunde inte skapa PDF."));
+      var baseTemplateParams = {
         from_name: name,
         customer_email: c.email || "",
         customer_phone: c.phone || "",
         message: message,
         captcha_token: humanCheckState.token || "",
         captcha_bypass: humanCheckBypassEnabled ? "true" : "false",
-        captcha_bypass_reason: humanCheckBypassEnabled ? humanCheckBypassReason : "",
-        pdf_attachment: base64
+        captcha_bypass_reason: humanCheckBypassEnabled ? humanCheckBypassReason : ""
       };
-      return emailjs.send(config.serviceId, config.templateId, templateParams, { publicKey: config.publicKey });
+      var withAttachmentParams = Object.assign({}, baseTemplateParams, { pdf_attachment: base64 });
+      return emailjs
+        .send(config.serviceId, config.templateId, withAttachmentParams, { publicKey: config.publicKey })
+        .then(function () {
+          return { sentWithoutAttachment: false };
+        })
+        .catch(function (firstErr) {
+          console.warn("EmailJS attachment send failed, retrying without attachment:", firstErr);
+          var fallbackParams = Object.assign({}, baseTemplateParams, {
+            message: message + "\n\nOBS: PDF-bilaga kunde inte bifogas automatiskt (EmailJS-plan). Kunden kan ladda ner PDF från offertsidan."
+          });
+          return emailjs.send(config.serviceId, config.templateId, fallbackParams, { publicKey: config.publicKey }).then(function () {
+            return { sentWithoutAttachment: true };
+          });
+        });
     })
-    .then(function () {
+    .then(function (result) {
       markOfferSentNow();
       if (typeof window.turnstile !== "undefined" && humanCheckState.widgetId !== null) {
         window.turnstile.reset(humanCheckState.widgetId);
       }
       humanCheckState.token = "";
       cleanup();
-      alert("Tack! Offerten har skickats till oss. Vi återkommer till dig.");
+      if (result && result.sentWithoutAttachment) {
+        alert("Offerten skickades utan PDF-bilaga (EmailJS-plan). Klicka på 'Ladda ner PDF' för att spara bilagan lokalt.");
+      } else {
+        alert("Tack! Offerten har skickats till oss. Vi återkommer till dig.");
+      }
     })
     .catch(function (err) {
       cleanup();
@@ -281,9 +300,9 @@ function laddaNerPDF() {
       .set({
         margin: 0,
         filename: "offert-greenfence.pdf",
-        image: { type: "jpeg", quality: 0.98 },
+        image: { type: "jpeg", quality: PDF_IMAGE_QUALITY },
         html2canvas: {
-          scale: 2,
+          scale: PDF_RENDER_SCALE,
           backgroundColor: "#ffffff",
           useCORS: true,
           logging: false,
