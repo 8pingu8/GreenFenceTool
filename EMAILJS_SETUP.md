@@ -59,7 +59,20 @@ We use **EmailJS** (free tier, no backend). You do the steps below once, then pa
 
 ---
 
-## 5. Put the three values into the HTML
+## 5. Set up CAPTCHA (Cloudflare Turnstile)
+
+1. Go to **https://dash.cloudflare.com/**
+2. Open **Turnstile** → **Add widget**
+3. Choose your site (or add a new one)
+4. Add your production domain (your GitHub Pages URL)
+5. Copy the **Site Key** (public key)
+
+> Important: keep the **Secret Key** only in server-side environments.  
+> This project only needs the **Site Key** in frontend.
+
+---
+
+## 6. Put the values into the HTML
 
 Open **index.html** (the main file to open the app) and find this block (search for `EMAILJS`):
 
@@ -69,7 +82,8 @@ Open **index.html** (the main file to open the app) and find this block (search 
   window.EMAILJS = {
     publicKey: "PASTE_YOUR_PUBLIC_KEY_HERE",
     serviceId: "PASTE_YOUR_SERVICE_ID_HERE",
-    templateId: "PASTE_YOUR_TEMPLATE_ID_HERE"
+    templateId: "PASTE_YOUR_TEMPLATE_ID_HERE",
+    turnstileSiteKey: "PASTE_YOUR_TURNSTILE_SITE_KEY_HERE"
   };
 </script>
 ```
@@ -79,8 +93,18 @@ Replace:
 - **PASTE_YOUR_PUBLIC_KEY_HERE** → your Public Key  
 - **PASTE_YOUR_SERVICE_ID_HERE** → your Service ID  
 - **PASTE_YOUR_TEMPLATE_ID_HERE** → your Template ID  
+- **PASTE_YOUR_TURNSTILE_SITE_KEY_HERE** → your Cloudflare Turnstile Site Key  
 
-Save the file. The “Skicka till oss” button will then send the offert PDF to info@greenfence.se via EmailJS.
+Save the file. The “Skicka till oss” button will then require CAPTCHA and send the offert PDF to info@greenfence.se via EmailJS.
+
+---
+
+## 7. Security settings you should enable in EmailJS
+
+1. In EmailJS dashboard, open your **Email Service**.
+2. Enable **Allowed domains** (or equivalent) and add only your real domain(s), e.g. your GitHub Pages URL.
+3. If available in your plan, enable **rate limits** / anti-abuse settings.
+4. Check logs regularly for unusual traffic spikes.
 
 ---
 
@@ -94,6 +118,7 @@ The script sends these template parameters (use the same names in your template 
 | `customer_email` | Customer email              |
 | `customer_phone` | Customer telephone number   |
 | `message`      | Pre-filled message text       |
+| `captcha_token` | CAPTCHA token (sent for traceability/logging) |
 | `pdf_attachment` | PDF file (base64) – **Parameter name must be exactly `pdf_attachment`** in the Attachments tab |
 
 ---

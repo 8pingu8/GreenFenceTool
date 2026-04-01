@@ -33,6 +33,7 @@ function showCustomerStep() {
 function doShowCustomerStep() {
   const staket = document.getElementById("staket-info-section");
   const customer = document.getElementById("customer-data-section");
+  window.customerFormStartedAt = Date.now();
   if (staket) staket.classList.add("hidden");
   if (customer) customer.classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -543,8 +544,13 @@ function generaPreventivMultiPagina() {
     invoiceContainer.innerHTML += pg.html;
   });
 
-  const pdfBtnHtml = `<div class="invoice-download-wrap"><button type="button" class="pdf-button" onclick="laddaNerPDF()"><i class="fas fa-download" aria-hidden="true"></i> Ladda ner PDF</button><button type="button" class="email-button" onclick="skickaOfferTillOss()"><i class="fas fa-envelope" aria-hidden="true"></i> Skicka till oss</button></div>`;
+  const pdfBtnHtml = `<div class="invoice-download-wrap"><button type="button" class="pdf-button" onclick="laddaNerPDF()"><i class="fas fa-download" aria-hidden="true"></i> Ladda ner PDF</button><button type="button" class="email-button" onclick="skickaOfferTillOss()"><i class="fas fa-envelope" aria-hidden="true"></i> Skicka till oss</button></div>
+  <div class="invoice-security-wrap" style="margin-top:12px;">
+    <div id="human-check-widget"></div>
+    <p id="human-check-help" style="font-size:12px;color:#5f6b7a;margin:6px 0 0 0;">Säkerhetskontroll krävs innan vi kan ta emot offerten.</p>
+  </div>`;
   invoiceContainer.innerHTML += pdfBtnHtml;
+  if (typeof renderHumanCheckWidget === "function") renderHumanCheckWidget();
   
 
   // Aggiungi anche il pulsante “Föregående” come stringa HTML corretta

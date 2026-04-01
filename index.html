@@ -237,6 +237,10 @@
 
       <label for="customer-phone">Telefon</label>
       <input type="tel" id="customer-phone" name="customer-phone" autocomplete="tel" placeholder="T.ex. 070-123 45 67" />
+      <div style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+        <label for="customer-website">Lämna detta fält tomt</label>
+        <input type="text" id="customer-website" name="customer-website" tabindex="-1" autocomplete="off" />
+      </div>
 
       <div class="customer-delivery-wrap">
         <input type="checkbox" id="customer-delivery" name="customer-delivery" />
@@ -262,12 +266,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     <!-- EmailJS: sätt dina värden här (se EMAILJS_SETUP.md) -->
     <script>
       window.EMAILJS = {
-        publicKey: "PASTE_YOUR_PUBLIC_KEY_HERE",
-        serviceId: "PASTE_YOUR_SERVICE_ID_HERE",
-        templateId: "PASTE_YOUR_TEMPLATE_ID_HERE"
+        publicKey: "jqqWKUM7ljYPa085V",
+        serviceId: "service_lol2qz2",
+        templateId: "template_93qrdc5",
+        turnstileSiteKey: "0x4AAAAAACzF-lNZU1w2ve5Q"
       };
     </script>
     <script src="js/logo-data.js"></script>
