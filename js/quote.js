@@ -546,12 +546,14 @@ function generaPreventivMultiPagina() {
 
   const pdfBtnHtml = `<div class="invoice-download-wrap"><button type="button" class="pdf-button" onclick="laddaNerPDF()"><i class="fas fa-download" aria-hidden="true"></i> Ladda ner PDF</button><button type="button" class="email-button" onclick="skickaOfferTillOss()"><i class="fas fa-envelope" aria-hidden="true"></i> Skicka till oss</button></div>
   <div class="invoice-security-wrap" style="margin:12px auto 0;max-width:420px;text-align:center;">
-    <div id="human-check-widget" style="min-height:70px;display:flex;justify-content:center;align-items:flex-start;"></div>
+    <div id="human-check-widget" style="min-height:80px;display:flex;justify-content:center;align-items:flex-start;"></div>
     <p id="human-check-help" style="font-size:12px;color:#5f6b7a;margin:6px 0 0 0;">Säkerhetskontroll krävs innan vi kan ta emot offerten.</p>
     <button type="button" id="human-check-retry-btn" class="button-secondary" style="margin-top:8px;padding:8px 12px;font-size:13px;">Ladda om säkerhetskontroll</button>
   </div>`;
   invoiceContainer.innerHTML += pdfBtnHtml;
-  if (typeof renderHumanCheckWidget === "function") renderHumanCheckWidget();
+  // [DEPRECATED – Turnstile render call, kept for revert]
+  // if (typeof renderHumanCheckWidget === "function") renderHumanCheckWidget();
+  if (typeof renderRecaptchaWidget === "function") renderRecaptchaWidget();
   
 
   // Aggiungi anche il pulsante “Föregående” come stringa HTML corretta

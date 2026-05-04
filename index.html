@@ -271,14 +271,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+    <!-- [DEPRECATED] Cloudflare Turnstile – kept commented for easy revert. -->
+    <!-- <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script> -->
+    <!-- Google reCAPTCHA v2 (natively verified by EmailJS server-side) -->
+    <script src="https://www.google.com/recaptcha/api.js?render=explicit" async defer></script>
     <!-- EmailJS: sätt dina värden här (se EMAILJS_SETUP.md) -->
     <script>
       window.EMAILJS = {
         publicKey: "JqqWKUM7ljYPaO85V",
         serviceId: "service_l0l2qz2",
         templateId: "template_93qrdc5",
-        turnstileSiteKey: "0x4AAAAAACzF-lNZU1w2ve5Q",
+        // turnstileSiteKey: "0x4AAAAAACzF-lNZU1w2ve5Q", // [DEPRECATED] kept for revert
+        recaptchaSiteKey: "6LfSeNksAAAAAKhtG2OwHaxHvCA9f33JeqY_EpCa",
         disableAttachment: true
       };
     </script>

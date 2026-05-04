@@ -3,12 +3,16 @@
  */
 var OFFER_SEND_COOLDOWN_MS = 60000;
 var OFFER_MIN_FILL_TIME_MS = 8000;
+/* [DEPRECATED – Turnstile state, kept for easy revert]
 var humanCheckState = { widgetId: null, token: "" };
 var humanCheckRenderAttempts = 0;
 var humanCheckAutoRetryCount = 0;
 var HUMAN_CHECK_MAX_AUTO_RETRIES = 5;
 var humanCheckBypassEnabled = false;
 var humanCheckBypassReason = "";
+*/
+var recaptchaState = { widgetId: null };
+var recaptchaRenderAttempts = 0;
 var PDF_IMAGE_QUALITY = 0.84;
 var PDF_RENDER_SCALE = 1.4;
 
@@ -33,6 +37,9 @@ function validateEmailAddress(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
 }
 
+/* [DEPRECATED – Cloudflare Turnstile renderer. Kept commented for easy revert.
+   To restore: re-enable Turnstile <script> in index.html, restore turnstileSiteKey,
+   uncomment the state vars above and this function, and swap the call in quote.js.]
 function renderHumanCheckWidget() {
   var target = document.getElementById("human-check-widget");
   var help = document.getElementById("human-check-help");
@@ -134,6 +141,81 @@ function renderHumanCheckWidget() {
     console.warn("Turnstile init error:", err);
   }
 }
+*/
+
+function getRecaptchaToken() {
+  if (typeof window.grecaptcha === "undefined" || recaptchaState.widgetId === null) return "";
+  try {
+    return String(window.grecaptcha.getResponse(recaptchaState.widgetId) || "");
+  } catch (e) {
+    return "";
+  }
+}
+
+function renderRecaptchaWidget() {
+  var target = document.getElementById("human-check-widget");
+  var help = document.getElementById("human-check-help");
+  var retryBtn = document.getElementById("human-check-retry-btn");
+  if (!target) return;
+
+  if (retryBtn && !retryBtn.dataset.bound) {
+    retryBtn.addEventListener("click", function () {
+      recaptchaRenderAttempts = 0;
+      renderRecaptchaWidget();
+    });
+    retryBtn.dataset.bound = "1";
+  }
+
+  if (recaptchaState.widgetId !== null && typeof window.grecaptcha !== "undefined") {
+    try { window.grecaptcha.reset(recaptchaState.widgetId); return; } catch (e) {}
+  }
+
+  target.innerHTML = "";
+  recaptchaState.widgetId = null;
+  recaptchaRenderAttempts += 1;
+
+  var config = window.EMAILJS || {};
+  var siteKey = String(config.recaptchaSiteKey || "").trim();
+  if (!siteKey || siteKey.indexOf("PASTE") >= 0) {
+    if (help) help.textContent = "Säkerhetskontroll ej konfigurerad. Lägg till reCAPTCHA site key i EMAILJS-blocket i index.html.";
+    return;
+  }
+  if (window.location && window.location.protocol === "file:") {
+    if (help) help.textContent = "CAPTCHA fungerar inte från fil://. Öppna sidan via en webbserver eller GitHub Pages.";
+    return;
+  }
+  if (typeof window.grecaptcha === "undefined" || typeof window.grecaptcha.render !== "function") {
+    if (help) help.textContent = "Säkerhetskontroll laddas...";
+    if (recaptchaRenderAttempts < 30) {
+      setTimeout(renderRecaptchaWidget, 500);
+    } else if (help) {
+      help.textContent = "Säkerhetskontroll kunde inte laddas. Kontrollera nätverk/adblocker och klicka 'Ladda om säkerhetskontroll'.";
+    }
+    return;
+  }
+
+  try {
+    recaptchaState.widgetId = window.grecaptcha.render(target, {
+      sitekey: siteKey,
+      theme: "light",
+      callback: function () {
+        if (help) help.textContent = "Säkerhetskontroll klar.";
+      },
+      "expired-callback": function () {
+        if (help) help.textContent = "Säkerhetskontrollen gick ut. Bekräfta igen innan du skickar.";
+      },
+      "error-callback": function () {
+        if (help) help.textContent = "Säkerhetskontrollen misslyckades. Klicka 'Ladda om säkerhetskontroll' eller prova annan webbläsare/nätverk.";
+      }
+    });
+    recaptchaRenderAttempts = 0;
+    if (help) help.textContent = "Verifiera att du är människa innan du skickar.";
+  } catch (err) {
+    recaptchaState.widgetId = null;
+    if (help) help.textContent = "Kunde inte starta säkerhetskontrollen: " + String((err && err.message) || err || "okänt fel");
+    console.warn("reCAPTCHA init error:", err);
+  }
+}
 
 function validateOfferBeforeSend() {
   var c = window.customerData || {};
@@ -151,8 +233,11 @@ function validateOfferBeforeSend() {
   if (phone.replace(/[^\d+]/g, "").length < 7) return "Ange ett giltigt telefonnummer innan du skickar.";
   if (!startedAt || fillTime < OFFER_MIN_FILL_TIME_MS) return "Vänta några sekunder och försök sedan skicka igen.";
   if (cooldown > 0) return "Vänta " + Math.ceil(cooldown / 1000) + " sekunder innan du skickar igen.";
+  /* [DEPRECATED – Turnstile gate, replaced by reCAPTCHA below]
   if (!humanCheckState.token && humanCheckBypassEnabled) return "";
   if (!humanCheckState.token) return "Bekräfta säkerhetskontrollen (CAPTCHA) innan du skickar.";
+  */
+  if (!getRecaptchaToken()) return "Bekräfta säkerhetskontrollen (CAPTCHA) innan du skickar.";
   return "";
 }
 
@@ -217,17 +302,41 @@ function skickaOfferTillOss() {
   if (c.idNumber) message += "\n" + (c.customerType === "company" ? "Organisationsnummer" : "Personnummer") + ": " + c.idNumber;
   if (c.phone) message += "\nTelefon: " + c.phone;
   if (c.email) message += "\nE-post: " + c.email;
-  var disableAttachment = !!config.disableAttachment;
+  // [TEMPORARILY DISABLED] PDF attachment is disabled until EmailJS plan supports attachments.
+  // The `disableAttachment` config flag in index.html is currently ignored — the code below
+  // always sends without attachment. See the commented block further down for how to re-enable.
+  // var disableAttachment = !!config.disableAttachment; // [original – restore when attachments are re-enabled]
+  var recaptchaToken = getRecaptchaToken();
   var baseTemplateParams = {
     from_name: name,
     customer_email: c.email || "",
     customer_phone: c.phone || "",
     message: message,
+    // EmailJS reads this exact key and verifies it server-side against Google.
+    "g-recaptcha-response": recaptchaToken
+    /* [DEPRECATED – Turnstile params, kept for revert]
     captcha_token: humanCheckState.token || "",
     captcha_bypass: humanCheckBypassEnabled ? "true" : "false",
     captcha_bypass_reason: humanCheckBypassEnabled ? humanCheckBypassReason : ""
+    */
   };
   var sendPromise;
+
+  // ─── Send without attachment (current mode) ────────────────────────────────
+  sendPromise = emailjs
+    .send(config.serviceId, config.templateId, baseTemplateParams, { publicKey: config.publicKey })
+    .then(function () {
+      return { sentWithoutAttachment: true, noAttachmentMode: true };
+    });
+
+  /* [TEMPORARILY DISABLED – PDF attachment branch]
+     EmailJS free tier does not support attachments. To re-enable when on a paid plan:
+       1. Restore `var disableAttachment = !!config.disableAttachment;` above.
+       2. Set `disableAttachment: false` in window.EMAILJS in index.html.
+       3. Replace the `sendPromise = emailjs.send(...)` block above with the original
+          `if (disableAttachment) { ... } else { ... }` structure shown below.
+       4. Make sure your EmailJS template has the Variable Attachment with parameter
+          name exactly `pdf_attachment` (see EMAILJS_SETUP.md step 3).
 
   if (disableAttachment) {
     sendPromise = emailjs
@@ -269,14 +378,20 @@ function skickaOfferTillOss() {
           });
       });
   }
+  */
 
   sendPromise
     .then(function (result) {
       markOfferSentNow();
+      /* [DEPRECATED – Turnstile reset, kept for revert]
       if (typeof window.turnstile !== "undefined" && humanCheckState.widgetId !== null) {
         window.turnstile.reset(humanCheckState.widgetId);
       }
       humanCheckState.token = "";
+      */
+      if (typeof window.grecaptcha !== "undefined" && recaptchaState.widgetId !== null) {
+        try { window.grecaptcha.reset(recaptchaState.widgetId); } catch (e) {}
+      }
       cleanup();
       if (result && result.sentWithoutAttachment) {
         alert("Offerten skickades utan PDF-bilaga (EmailJS-plan). Klicka på 'Ladda ner PDF' för att spara bilagan lokalt.");
