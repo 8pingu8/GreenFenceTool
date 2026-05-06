@@ -76,38 +76,42 @@
       </select>
 
       <!-- Villa gate variants (enkelgrind / dubbelgrind) -->
-    <div id="villagrindar-container" style="margin-top: 10px;">
-      <div style="margin-bottom: 6px; display:flex; align-items:center; gap:8px;">
-        <label for="enkelgrind-storlek" style="min-width:100px;">Enkelgrind</label>
-        <select id="enkelgrind-storlek" style="width:120px;">
-          <option value="enkel_1m_2m">1 m × 2 m</option>
-          <option value="enkel_120m_2m">1,2 m × 2 m</option>
-        </select>
-        <input type="number" id="enkelgrind-antal" min="0" step="1" value="0" style="width:60px;" />
+    <div id="villagrindar-container" class="villa-gates">
+      <div class="villa-gate-row">
+        <label for="enkelgrind-storlek">Enkelgrind</label>
+        <div class="villa-gate-controls">
+          <select id="enkelgrind-storlek" class="villa-gate-size">
+            <option value="enkel_1m_2m">1 m × 2 m</option>
+            <option value="enkel_120m_2m">1,2 m × 2 m</option>
+          </select>
+          <input type="number" id="enkelgrind-antal" min="0" step="1" value="0" class="villa-gate-qty" />
+        </div>
       </div>
-      <div style="margin-bottom: 6px; display:flex; align-items:center; gap:8px;">
-        <label for="dubbelgrind-storlek" style="min-width:100px;">Dubbelgrind</label>
-        <select id="dubbelgrind-storlek" style="width:120px;">
-          <option value="dubbel_1m_2m">1 m × 2 m</option>
-          <option value="dubbel_1m_4m">1 m × 4 m</option>
-          <option value="dubbel_120m_2m">1,2 m × 2 m</option>
-          <option value="dubbel_120m_4m">1,2 m × 4 m</option>
-        </select>
-        <input type="number" id="dubbelgrind-antal" min="0" step="1" value="0" style="width:60px;" />
+      <div class="villa-gate-row">
+        <label for="dubbelgrind-storlek">Dubbelgrind</label>
+        <div class="villa-gate-controls">
+          <select id="dubbelgrind-storlek" class="villa-gate-size">
+            <option value="dubbel_1m_2m">1 m × 2 m</option>
+            <option value="dubbel_1m_4m">1 m × 4 m</option>
+            <option value="dubbel_120m_2m">1,2 m × 2 m</option>
+            <option value="dubbel_120m_4m">1,2 m × 4 m</option>
+          </select>
+          <input type="number" id="dubbelgrind-antal" min="0" step="1" value="0" class="villa-gate-qty" />
+        </div>
       </div>
     </div>
       
-     <div style="width: 100%; display: flex; flex-direction: column; align-items: center; margin-top: 10px;">
-     <div style="display: flex; align-items: center; gap: 6px;">
-     <input type="checkbox" id="plintbetong" style="transform: scale(1.2)" />
-     <label for="plintbetong" style="cursor: pointer; white-space: nowrap;">
-      Lägg till Plintbetong (2 st/stolpe)
-     </label>
-     <span class="plint-tooltip-wrap">
-       <i class="fas fa-info-circle plint-tooltip-icon" aria-hidden="true"></i>
-      <span class="plint-tooltip-text">Räkna med minst 2 säckar per stolpe, eller fler beroende på markförhållanden.</span>
-     </span>
-     </div>
+     <div class="plint-wrap">
+       <div class="plint-inner">
+         <input type="checkbox" id="plintbetong" />
+         <label for="plintbetong">
+           Lägg till Plintbetong (2 st/stolpe)
+         </label>
+         <span class="plint-tooltip-wrap">
+           <i class="fas fa-info-circle plint-tooltip-icon" aria-hidden="true"></i>
+           <span class="plint-tooltip-text">Räkna med minst 2 säckar per stolpe, eller fler beroende på markförhållanden.</span>
+         </span>
+       </div>
      </div>
 
       </div>
@@ -217,10 +221,14 @@
       <fieldset class="customer-type-fieldset" aria-label="Kundtyp">
         <legend class="customer-type-legend">Kundtyp</legend>
         <div class="customer-type-options">
-          <input type="radio" id="customer-type-private" name="customer-type" value="private" checked />
-          <label for="customer-type-private">Privatperson</label>
-          <input type="radio" id="customer-type-company" name="customer-type" value="company" />
-          <label for="customer-type-company">Företagskund</label>
+          <label for="customer-type-private" class="customer-type-option">
+            <input type="radio" id="customer-type-private" name="customer-type" value="private" checked />
+            <span>Privatperson</span>
+          </label>
+          <label for="customer-type-company" class="customer-type-option">
+            <input type="radio" id="customer-type-company" name="customer-type" value="company" />
+            <span>Företagskund</span>
+          </label>
         </div>
       </fieldset>
 

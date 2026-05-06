@@ -42,6 +42,7 @@
     backdrop-filter: blur(10px);
     transition: var(--transition);
     animation: fadeInUp 0.6s ease-out;
+    overflow-x: clip;
   }
   @keyframes fadeInUp {
     from {
@@ -229,21 +230,37 @@
     margin-bottom: 0;
     flex-shrink: 0;
   }
-  label[for="plintbetong"] {
+  .plint-wrap {
+    width: 100%;
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+  }
+  .plint-inner {
     display: flex;
     align-items: center;
-    margin: 20px 0;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(133, 171, 92, 0.06);
+    transition: var(--transition);
+    max-width: 100%;
+  }
+  .plint-inner:hover {
+    background: rgba(133, 171, 92, 0.12);
+  }
+  label[for="plintbetong"] {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
     cursor: pointer;
     font-weight: 500;
     text-transform: none;
-    font-size: 16px;
+    letter-spacing: normal;
+    font-size: 15px;
     color: var(--text-primary);
-    padding: 12px;
-    border-radius: 8px;
-    transition: var(--transition);
-  }
-  label[for="plintbetong"]:hover {
-    background: rgba(133, 171, 92, 0.1);
+    line-height: 1.4;
   }
   .plint-tooltip-wrap {
     position: relative;
@@ -316,6 +333,68 @@
     color: var(--text-secondary);
     margin-top: 8px;
     font-style: italic;
+  }
+
+  /* Villa gates (enkelgrind / dubbelgrind) – responsive rows */
+  .villa-gates {
+    margin: 18px 0 10px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .villa-gate-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 16px;
+    background: rgba(133, 171, 92, 0.06);
+    border-radius: 10px;
+    border-left: 3px solid var(--accent-green);
+  }
+  .villa-gate-row > label {
+    margin: 0;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--text-primary);
+    font-family: 'Poppins', sans-serif;
+  }
+  .villa-gate-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .villa-gate-row select.villa-gate-size,
+  .villa-gate-row input.villa-gate-qty {
+    margin: 0;
+    padding: 10px 12px;
+    font-size: 15px;
+  }
+  .villa-gate-row select.villa-gate-size {
+    flex: 1;
+    min-width: 0;
+    padding-right: 36px;
+    background-position: right 12px center;
+  }
+  .villa-gate-row input.villa-gate-qty {
+    width: 84px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+  @media (min-width: 600px) {
+    .villa-gate-row {
+      flex-direction: row;
+      align-items: center;
+      gap: 14px;
+    }
+    .villa-gate-row > label {
+      width: 110px;
+      flex-shrink: 0;
+    }
+    .villa-gate-controls {
+      flex: 1;
+    }
   }
 
   /* Electrify option – separate card for animal fence */
@@ -697,9 +776,9 @@
   .customer-type-fieldset {
     margin: 0 0 20px 0;
     padding: 12px 16px;
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    background: var(--bg-subtle, #fafafa);
+    background: #fafafa;
   }
   .customer-type-legend {
     font-weight: 600;
@@ -709,19 +788,52 @@
   }
   .customer-type-options {
     display: flex;
-    flex-wrap: wrap;
-    gap: 16px 24px;
-    align-items: center;
+    flex-direction: column;
+    gap: 10px;
   }
-  .customer-type-options input[type="radio"] {
+  .customer-type-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: var(--transition);
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--text-primary);
+  }
+  .customer-type-option:hover {
+    border-color: var(--accent-green-light);
+    background: rgba(133, 171, 92, 0.05);
+  }
+  .customer-type-option input[type="radio"] {
+    width: 20px;
+    height: 20px;
     margin: 0;
     cursor: pointer;
     accent-color: var(--primary-green);
+    flex-shrink: 0;
   }
-  .customer-type-options label {
-    margin: 0;
-    cursor: pointer;
-    font-weight: 500;
+  .customer-type-option:has(input[type="radio"]:checked) {
+    border-color: var(--accent-green);
+    background: rgba(133, 171, 92, 0.12);
+    box-shadow: 0 0 0 3px rgba(133, 171, 92, 0.12);
+  }
+  @media (min-width: 600px) {
+    .customer-type-options {
+      flex-direction: row;
+      gap: 12px;
+    }
+    .customer-type-option {
+      flex: 1;
+    }
   }
   .customer-id-hint {
     margin: 16px 0 6px 0;
@@ -731,7 +843,7 @@
   .animal-options-panel {
     margin: 16px 0 20px 0;
     padding: 16px;
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     background: rgba(133, 171, 92, 0.06);
   }
@@ -781,7 +893,7 @@
   .animal-electrified-options {
     margin-top: 16px;
     padding-top: 14px;
-    border-top: 1px solid var(--border-light);
+    border-top: 1px solid var(--border-color);
     display: flex;
     flex-wrap: wrap;
     gap: 12px 20px;
@@ -794,7 +906,7 @@
     min-width: 120px;
     padding: 6px 10px;
     border-radius: 6px;
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--border-color);
   }
   .customer-delivery-wrap {
     display: flex;
@@ -1374,4 +1486,138 @@
     left: 0;
     outline: 3px solid var(--accent-green-light);
     outline-offset: 2px;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     Mobile polish – stack/shrink on small screens
+     ═══════════════════════════════════════════════════════════════ */
+  @media (max-width: 600px) {
+    .form-section {
+      margin: 14px 8px;
+      padding: 22px 16px;
+      border-radius: 14px;
+    }
+    .customer-step-heading {
+      font-size: 22px;
+    }
+    .customer-step-intro,
+    .customer-next-info p {
+      font-size: 14px;
+    }
+    label {
+      font-size: 13px;
+      margin: 16px 0 6px 0;
+    }
+    input[type="number"],
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    select {
+      font-size: 16px; /* keep 16px on inputs to prevent iOS zoom on focus */
+      padding: 12px 14px;
+    }
+    .map-instructions {
+      padding: 14px 16px;
+    }
+    .map-instructions-heading {
+      font-size: 16px;
+    }
+    .map-instructions-list {
+      font-size: 13px;
+      line-height: 1.55;
+      padding-left: 18px;
+    }
+    .map-instructions-list li {
+      margin-bottom: 4px;
+    }
+    .fence-type-btn {
+      padding: 16px 14px;
+    }
+    .fence-type-icon .fence-type-img {
+      height: 40px;
+    }
+    .fence-type-title {
+      font-size: 15px;
+    }
+    .animal-row {
+      gap: 8px 10px;
+    }
+    .animal-cervo-type {
+      flex-wrap: wrap;
+    }
+    .animal-electrified-options {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+    }
+    .animal-electrified-options select {
+      width: 100%;
+      min-width: 0;
+    }
+    .customer-step-buttons {
+      flex-direction: column;
+    }
+    .customer-step-buttons button {
+      width: 100%;
+    }
+    .invoice-download-wrap {
+      flex-direction: column;
+      gap: 10px;
+    }
+    .invoice-download-wrap button {
+      width: 100%;
+    }
+    .invoice {
+      margin: 14px 8px;
+      padding: 14px;
+      border-radius: 12px;
+    }
+    .invoice-header-right .title {
+      font-size: 18px;
+    }
+    .totals {
+      font-size: 12px;
+      text-align: left;
+    }
+    .footer-text {
+      font-size: 11px;
+      margin-top: 24px;
+      padding-top: 16px;
+    }
+    .geocoder-leaflet-form input {
+      width: 160px !important;
+    }
+    .leaflet-control-geocoder-form input {
+      width: 160px !important;
+    }
+    .leaflet-control-geocoder-alternatives {
+      max-width: 220px;
+    }
+  }
+
+  /* Tiny phones (< 380 px): squeeze further so reCAPTCHA + form fit */
+  @media (max-width: 380px) {
+    .form-section {
+      margin: 10px 6px;
+      padding: 18px 12px;
+    }
+    .villa-gate-row {
+      padding: 12px;
+    }
+    .villa-gate-controls {
+      gap: 8px;
+    }
+    .villa-gate-row input.villa-gate-qty {
+      width: 70px;
+    }
+    .invoice-security-wrap {
+      transform: scale(0.92);
+      transform-origin: top center;
+    }
+  }
+
+  /* Prevent any errant horizontal scroll on the whole page */
+  html,
+  body {
+    overflow-x: hidden;
   }

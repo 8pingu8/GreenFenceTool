@@ -537,11 +537,14 @@ function generaPreventivMultiPagina() {
     }
   }
 
-  // Inserisci tutte le pagine dentro il container invoice
+  // Inserisci tutte le pagine dentro il container invoice.
+  // OBS: använd insertAdjacentHTML('beforeend', …) i stället för innerHTML +=,
+  // eftersom += serialiserar och återbygger alla befintliga barn (inklusive
+  // ev. live <iframe> från reCAPTCHA), vilket dödar widgeten.
   let overallTotal = 0;
   pages.forEach((pg) => {
     overallTotal += pg.subtotal;
-    invoiceContainer.innerHTML += pg.html;
+    invoiceContainer.insertAdjacentHTML("beforeend", pg.html);
   });
 
   const pdfBtnHtml = `<div class="invoice-download-wrap"><button type="button" class="pdf-button" onclick="laddaNerPDF()"><i class="fas fa-download" aria-hidden="true"></i> Ladda ner PDF</button><button type="button" class="email-button" onclick="skickaOfferTillOss()"><i class="fas fa-envelope" aria-hidden="true"></i> Skicka till oss</button></div>
@@ -550,17 +553,14 @@ function generaPreventivMultiPagina() {
     <p id="human-check-help" style="font-size:12px;color:#5f6b7a;margin:6px 0 0 0;">Säkerhetskontroll krävs innan vi kan ta emot offerten.</p>
     <button type="button" id="human-check-retry-btn" class="button-secondary" style="margin-top:8px;padding:8px 12px;font-size:13px;">Ladda om säkerhetskontroll</button>
   </div>`;
-  invoiceContainer.innerHTML += pdfBtnHtml;
+  invoiceContainer.insertAdjacentHTML("beforeend", pdfBtnHtml);
 
   // Aggiungi anche il pulsante “Föregående” come stringa HTML corretta
-  invoiceContainer.innerHTML += `
+  invoiceContainer.insertAdjacentHTML("beforeend", `
   <div class="invoice-nav-wrap">
   <button type="button" class="invoice-back-btn" onclick="tornaIndietroInvoice()"><i class="fas fa-arrow-left" aria-hidden="true"></i> Föregående</button>
-  </div>`;
+  </div>`);
 
-  // NOTE: rendera CAPTCHA SIST – alla innerHTML += mutationer på #invoice måste
-  // vara klara innan grecaptcha.render() injicerar sin <iframe>, annars rivs den
-  // ut när nästa innerHTML += serialiserar och återbygger barnen.
   // [DEPRECATED – Turnstile render call, kept for revert]
   // if (typeof renderHumanCheckWidget === "function") renderHumanCheckWidget();
   if (typeof renderRecaptchaWidget === "function") renderRecaptchaWidget();
