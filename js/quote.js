@@ -551,16 +551,19 @@ function generaPreventivMultiPagina() {
     <button type="button" id="human-check-retry-btn" class="button-secondary" style="margin-top:8px;padding:8px 12px;font-size:13px;">Ladda om säkerhetskontroll</button>
   </div>`;
   invoiceContainer.innerHTML += pdfBtnHtml;
-  // [DEPRECATED – Turnstile render call, kept for revert]
-  // if (typeof renderHumanCheckWidget === "function") renderHumanCheckWidget();
-  if (typeof renderRecaptchaWidget === "function") renderRecaptchaWidget();
-  
 
   // Aggiungi anche il pulsante “Föregående” come stringa HTML corretta
   invoiceContainer.innerHTML += `
   <div class="invoice-nav-wrap">
   <button type="button" class="invoice-back-btn" onclick="tornaIndietroInvoice()"><i class="fas fa-arrow-left" aria-hidden="true"></i> Föregående</button>
   </div>`;
+
+  // NOTE: rendera CAPTCHA SIST – alla innerHTML += mutationer på #invoice måste
+  // vara klara innan grecaptcha.render() injicerar sin <iframe>, annars rivs den
+  // ut när nästa innerHTML += serialiserar och återbygger barnen.
+  // [DEPRECATED – Turnstile render call, kept for revert]
+  // if (typeof renderHumanCheckWidget === "function") renderHumanCheckWidget();
+  if (typeof renderRecaptchaWidget === "function") renderRecaptchaWidget();
 
 
 }
