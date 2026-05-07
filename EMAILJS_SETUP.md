@@ -1,144 +1,199 @@
 # EmailJS setup – Skicka offert till oss
 
-We use **EmailJS** (free tier, no backend). You do the steps below once, then paste three values into the HTML.
+We use **EmailJS** (free tier, no backend) to send **two emails** every time a customer presses *“Skicka till oss”* on the offer page:
+
+1. **Internal email** → sent to **us** with the full customer data, the offer recap, the product list and the totals.
+2. **Customer thank-you email** → sent to **the customer’s own e-mail** with a short “thanks, we’ll be in touch” message.
+
+You will create **two templates** in the EmailJS dashboard and paste their IDs into `index.html`. Steps below.
 
 ---
 
 ## 1. Create an account
 
 1. Go to **https://www.emailjs.com/**
-2. Click **Sign Up Free**
-3. Create your account and sign in
+2. Click **Sign Up Free** and sign in.
 
 ---
 
-## 2. Add an email service (where emails are sent from)
+## 2. Add an email service (where mail is sent from)
 
-1. In the dashboard, go to **Email Services** → **Add New Service**
-2. Choose a provider, e.g. **Gmail** (or “Other” and use SMTP)
-3. For Gmail: connect your Google account (the address that will “send” the email – can be info@greenfence.se if you use Google Workspace)
-4. Save the service. You’ll see a **Service ID** (e.g. `service_xxxxx`). **Copy it** – you’ll need it later.
+1. Dashboard → **Email Services** → **Add New Service**.
+2. Pick a provider, e.g. **Gmail** (or *Other* + SMTP).
+3. For Gmail: connect your Google account – ideally `info@greenfence.se` if you use Google Workspace.
+4. Save the service. Copy the **Service ID** (e.g. `service_xxxxx`).
 
 ---
 
-## 3. Create an email template (with PDF attachment)
+## 3. Create the **internal** template (sent TO us)
 
-1. Go to **Email Templates** → **Create New Template**
-2. **Name:** e.g. `Offert från webb`
-3. **To Email:** set to **info@greenfence.se** (so all offert emails go there)
-4. **Subject:** e.g. `Offertförfrågan – {{from_name}}`
-5. **Content (body):** you can use plain text, e.g.:
+1. Dashboard → **Email Templates** → **Create New Template**.
+2. **Name:** e.g. `Offert – internt`.
+3. **To Email:** `info@greenfence.se` (so all leads land there).
+4. **Subject:** `Offertförfrågan – {{from_name}}`.
+5. **Reply To:** `{{customer_email}}` ← so when you press *Reply*, you reply to the customer, not to yourself.
+6. **Content (body)** – simplest version: just dump the pre-formatted message:
+
+   ```
+   {{message}}
+   ```
+
+   Or use the granular variables for a fancier layout:
 
    ```
    Ny offertförfrågan från webben.
 
+   KUND
+   ----
+   Kundtyp: {{customer_type}}
    Namn: {{from_name}}
+   {{customer_id_label}}: {{customer_id_number}}
+   Adress: {{customer_address}}
    E-post: {{customer_email}}
    Telefon: {{customer_phone}}
+   Leverans: {{customer_delivery}}
 
-   Meddelande:
-   {{message}}
+   OFFERT
+   ------
+   Stängseltyp: {{fence_type}}
+   Recap: {{offer_recap}}
+
+   PRODUKTER
+   ---------
+   {{products_text}}
+
+   TOTALT
+   ------
+   Summa exkl. moms: {{subtotal_excl_vat}} SEK
+   Moms (25%):       {{vat_amount}} SEK
+   Totalt inkl. moms:{{total_incl_vat}} SEK
    ```
 
-6. **Attachments:**
-   - Open the **Attachments** tab
-   - Click **Add**
-   - **Type:** **Variable Attachment**
-   - **Parameter name:** `pdf_attachment` (must be exactly this)
-   - **Filename:** `offert.pdf`
-   - **Content type:** `PDF`
-7. Save the template. You’ll see a **Template ID** (e.g. `template_xxxxx`). **Copy it**.
+7. Save. Copy the **Template ID** (e.g. `template_xxxxx`) – this is your `templateId`.
 
 ---
 
-## 4. Get your Public Key
+## 4. Create the **customer** thank-you template (sent TO the customer)
 
-1. Go to **Account** (or **Profile**) in the dashboard
-2. Find **Public Key** (or **API Keys**)
-3. **Copy the Public Key** (e.g. `xxxxxxxxxxxx`)
+1. Dashboard → **Email Templates** → **Create New Template**.
+2. **Name:** e.g. `Tack för din offertförfrågan`.
+3. **To Email:** `{{to_email}}` ← **important**, this is the customer’s address.
+4. **Reply To:** `info@greenfence.se` (so when the customer hits *Reply* it reaches you).
+5. **Subject:** `Tack för din offertförfrågan – Green Fence AB`.
+6. **Content (body):**
+
+   ```
+   Hej {{to_name}},
+
+   Tack för att du kontaktade oss!
+
+   Vi har tagit emot din offertförfrågan och återkommer snart för att
+   gå igenom din beställning.
+
+   Med vänliga hälsningar,
+   Green Fence AB
+   info@greenfence.se
+   +46 522 26 91 20
+   ```
+
+7. Save. Copy this **Template ID** – this is your `customerTemplateId`.
+
+> Don’t add an “Auto-Reply” inside the *internal* template. The customer email is **sent from the JS code** as a separate, normal send – this gives you the cleanest control and avoids the EmailJS auto-reply quirks.
 
 ---
 
-## 5. Set up CAPTCHA (Cloudflare Turnstile)
+## 5. Public Key
 
-1. Go to **https://dash.cloudflare.com/**
-2. Open **Turnstile** → **Add widget**
-3. Choose your site (or add a new one)
-4. Add your production domain (your GitHub Pages URL)
-5. Copy the **Site Key** (public key)
-
-> Important: keep the **Secret Key** only in server-side environments.  
-> This project only needs the **Site Key** in frontend.
+Dashboard → **Account / Profile** → **Public Key**. Copy it.
 
 ---
 
-## 6. Put the values into the HTML
+## 6. CAPTCHA (Google reCAPTCHA v2)
 
-Open **index.html** (the main file to open the app) and find this block (search for `EMAILJS`):
+1. Go to **https://www.google.com/recaptcha/admin**.
+2. Register a new site, **type: reCAPTCHA v2 → “I’m not a robot” checkbox**.
+3. Add your production domain (your GitHub Pages URL).
+4. Copy the **Site Key**. Keep the **Secret Key** in your EmailJS template settings (Security tab) – EmailJS will verify it server-side.
+
+---
+
+## 7. Paste the values into `index.html`
+
+Open `index.html` and find the `window.EMAILJS = { ... }` block:
 
 ```html
-<!-- EMAILJS: replace with your values -->
 <script>
   window.EMAILJS = {
     publicKey: "PASTE_YOUR_PUBLIC_KEY_HERE",
     serviceId: "PASTE_YOUR_SERVICE_ID_HERE",
-    templateId: "PASTE_YOUR_TEMPLATE_ID_HERE",
-    turnstileSiteKey: "PASTE_YOUR_TURNSTILE_SITE_KEY_HERE"
+    templateId: "PASTE_YOUR_INTERNAL_TEMPLATE_ID_HERE",
+    customerTemplateId: "PASTE_YOUR_CUSTOMER_TEMPLATE_ID_HERE",
+    recaptchaSiteKey: "PASTE_YOUR_RECAPTCHA_SITE_KEY_HERE",
+    disableAttachment: true
   };
 </script>
 ```
 
-Replace:
-
-- **PASTE_YOUR_PUBLIC_KEY_HERE** → your Public Key  
-- **PASTE_YOUR_SERVICE_ID_HERE** → your Service ID  
-- **PASTE_YOUR_TEMPLATE_ID_HERE** → your Template ID  
-- **PASTE_YOUR_TURNSTILE_SITE_KEY_HERE** → your Cloudflare Turnstile Site Key  
-
-Save the file. The “Skicka till oss” button will then require CAPTCHA and send the offert PDF to info@greenfence.se via EmailJS.
+Replace each `PASTE_…` value. If you leave `customerTemplateId` as the placeholder (or an empty string), the customer thank-you email is **silently skipped** – the internal email still goes out as before.
 
 ---
 
-## 7. Security settings you should enable in EmailJS
+## 8. Template variables sent by the code
 
-1. In EmailJS dashboard, open your **Email Service**.
-2. Enable **Allowed domains** (or equivalent) and add only your real domain(s), e.g. your GitHub Pages URL.
-3. If available in your plan, enable **rate limits** / anti-abuse settings.
-4. Check logs regularly for unusual traffic spikes.
+### Internal template (`templateId`)
+
+| Variable               | Description                                          |
+|------------------------|------------------------------------------------------|
+| `from_name`            | Customer full name (first + last)                    |
+| `customer_first_name`  | First name                                           |
+| `customer_last_name`   | Last name                                            |
+| `customer_email`       | Customer email                                       |
+| `customer_phone`       | Customer phone                                       |
+| `customer_type`        | `Privatperson` / `Företagskund`                      |
+| `customer_id_label`    | `Personnummer` / `Organisationsnummer`               |
+| `customer_id_number`   | The actual ID number                                 |
+| `customer_address`     | Address                                              |
+| `customer_delivery`    | `Ja` / `Nej`                                         |
+| `fence_type`           | `Villastängsel` / `Djurstängsel`                     |
+| `offer_recap`          | One-liner: title + length/angles/color/height        |
+| `products_text`        | Multi-line list: `- Nät: 2 rullar × 4500 SEK = 9000` |
+| `subtotal_excl_vat`    | Grand total without VAT                              |
+| `vat_amount`           | VAT amount (25%)                                     |
+| `total_incl_vat`       | Grand total with VAT                                 |
+| `message`              | Full pre-formatted body (drop-in single variable)    |
+| `g-recaptcha-response` | reCAPTCHA token (verified server-side by EmailJS)    |
+
+### Customer template (`customerTemplateId`)
+
+| Variable              | Description                                            |
+|-----------------------|--------------------------------------------------------|
+| `to_email`            | The customer’s email – use as the **To Email** field   |
+| `to_name`             | Customer’s name                                        |
+| `customer_email`      | Same as `to_email` (alias for older templates)         |
+| `customer_first_name` | First name                                             |
+| `customer_last_name`  | Last name                                              |
+| `from_name`           | Customer full name                                     |
+| `reply_to`            | Customer email (alias)                                 |
+| `customer_name`       | Customer full name (alias)                             |
+| `offer_recap`         | Same recap, in case you want to echo it back           |
+| `subtotal_excl_vat`   | Grand total without VAT                                |
+| `vat_amount`          | VAT amount (25%)                                       |
+| `total_incl_vat`      | Grand total with VAT                                   |
 
 ---
 
-## Template variables used by the code
+## 9. Security settings to enable in EmailJS
 
-The script sends these template parameters (use the same names in your template if you want to change the text):
-
-| Parameter       | Description                    |
-|----------------|--------------------------------|
-| `from_name`    | Customer name (first + last)  |
-| `customer_email` | Customer email              |
-| `customer_phone` | Customer telephone number   |
-| `message`      | Pre-filled message text       |
-| `captcha_token` | CAPTCHA token (sent for traceability/logging) |
-| `pdf_attachment` | PDF file (base64) – **Parameter name must be exactly `pdf_attachment`** in the Attachments tab |
+1. **Allow list** of domains under your service – add only your real GitHub Pages domain.
+2. **reCAPTCHA verification** – paste the **Secret Key** in the template **Security** tab so EmailJS validates `g-recaptcha-response` server-side.
+3. **Rate limit** – enable it in the service settings if your plan supports it.
 
 ---
 
-## Free tier
+## 10. Free tier
 
-EmailJS free tier is enough for low volume (e.g. 200 emails/month). For more, see their pricing.
+EmailJS free tier covers ~200 emails/month. Each *Skicka till oss* now sends **2** emails (internal + customer), so plan accordingly.
 
-### Note about attachments on free plans
+### About attachments
 
-If your EmailJS plan does not allow attachments, the app now retries automatically **without** `pdf_attachment`.
-The lead is still sent (name, email, phone, message), and the user is prompted to download the PDF locally.
-
-Temporary test mode is also available in `index.html`:
-
-```js
-window.EMAILJS = {
-  // ...
-  disableAttachment: true
-};
-```
-
-When `disableAttachment` is `true`, the app skips PDF generation and sends only text fields. Use this to verify EmailJS configuration quickly on free plans.
+PDF attachments are currently disabled (`disableAttachment: true`). The customer can press *Ladda ner PDF* to save the offer locally. The commented `[TEMPORARILY DISABLED – PDF attachment branch]` block in `js/invoice-actions.js` shows exactly how to re-enable attachments if you upgrade your plan.

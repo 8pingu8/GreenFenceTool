@@ -288,7 +288,12 @@
       window.EMAILJS = {
         publicKey: "JqqWKUM7ljYPaO85V",
         serviceId: "service_l0l2qz2",
+        // Internal template – sent TO us with all customer + offer data.
         templateId: "template_93qrdc5",
+        // Customer-facing thank-you template – sent TO the customer's email.
+        // Leave the PASTE_… placeholder until you create the template in EmailJS;
+        // when blank/placeholder, the customer email step is skipped silently.
+        customerTemplateId: "template_dhz324p",
         // turnstileSiteKey: "0x4AAAAAACzF-lNZU1w2ve5Q", // [DEPRECATED] kept for revert
         recaptchaSiteKey: "6LfSeNksAAAAAKhtG2OwHaxHvCA9f33JeqY_EpCa",
         disableAttachment: true

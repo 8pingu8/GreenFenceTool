@@ -166,8 +166,16 @@ function renderRecaptchaWidget() {
     retryBtn.dataset.bound = "1";
   }
 
+  // If we already rendered a widget AND its iframe is still in the DOM, just reset it.
+  // If the iframe is gone (e.g. user navigated away and the invoice container was rebuilt),
+  // the old widgetId points to dead DOM — we must wipe state and render a fresh widget,
+  // otherwise grecaptcha.reset() no-ops and the captcha appears to "disappear".
   if (recaptchaState.widgetId !== null && typeof window.grecaptcha !== "undefined") {
-    try { window.grecaptcha.reset(recaptchaState.widgetId); return; } catch (e) {}
+    var hasLiveIframe = !!target.querySelector("iframe");
+    if (hasLiveIframe) {
+      try { window.grecaptcha.reset(recaptchaState.widgetId); return; } catch (e) {}
+    }
+    recaptchaState.widgetId = null;
   }
 
   target.innerHTML = "";
@@ -297,21 +305,112 @@ function skickaOfferTillOss() {
 
   var c = window.customerData || {};
   var name = [c.name, c.surname].filter(Boolean).join(" ") || "Kund";
-  var message = "Hej,\n\nJag är intresserad av erbjudandet och vill gärna gå vidare. Vänligen kontakta mig.\n\nMed vänliga hälsningar,\n" + name;
-  if (c.customerTypeLabel) message += "\nKundtyp: " + c.customerTypeLabel;
-  if (c.idNumber) message += "\n" + (c.customerType === "company" ? "Organisationsnummer" : "Personnummer") + ": " + c.idNumber;
-  if (c.phone) message += "\nTelefon: " + c.phone;
-  if (c.email) message += "\nE-post: " + c.email;
-  // [TEMPORARILY DISABLED] PDF attachment is disabled until EmailJS plan supports attachments.
-  // The `disableAttachment` config flag in index.html is currently ignored — the code below
-  // always sends without attachment. See the commented block further down for how to re-enable.
+  var summary = window.invoiceSummary || { sections: [], fenceTypeLabel: "", mode: "" };
+  var idLabel = c.customerType === "company" ? "Organisationsnummer" : "Personnummer";
+  var fmt = function (n) { return (Number(n) || 0).toFixed(2); };
+
+  // ─── Build a clean plain-text breakdown of the offer ──────────────────────
+  // Used by both the internal email (to us) and the customer thank-you.
+  var lines = [];
+  lines.push("Ny offertförfrågan från webben.");
+  lines.push("");
+  lines.push("───────────────────────────────");
+  lines.push(" KUNDUPPGIFTER");
+  lines.push("───────────────────────────────");
+  lines.push("Kundtyp: " + (c.customerTypeLabel || "—"));
+  lines.push("Namn: " + name);
+  if (c.idNumber) lines.push(idLabel + ": " + c.idNumber);
+  if (c.address) lines.push("Adress: " + c.address);
+  if (c.email) lines.push("E-post: " + c.email);
+  if (c.phone) lines.push("Telefon: " + c.phone);
+  lines.push("Leverans: " + (c.delivery ? "Ja, önskar leverans" : "Nej"));
+  lines.push("");
+  lines.push("───────────────────────────────");
+  lines.push(" OFFERT");
+  lines.push("───────────────────────────────");
+  if (summary.fenceTypeLabel) lines.push("Stängseltyp: " + summary.fenceTypeLabel);
+
+  var grandSubtotal = 0;
+  (summary.sections || []).forEach(function (sec, idx) {
+    lines.push("");
+    lines.push("• " + (sec.title || ("Sektion " + (idx + 1))));
+    if (sec.recap) lines.push("  " + sec.recap);
+    lines.push("  Produkter:");
+    (sec.items || []).forEach(function (it) {
+      lines.push(
+        "    - " + it.namn +
+        ": " + fmt(it.antal) + " " + (it.enhet || "") +
+        " × " + fmt(it.pris) + " SEK = " + fmt(it.total) + " SEK"
+      );
+    });
+    lines.push("  Summa exkl. moms: " + fmt(sec.subtotal) + " SEK");
+    lines.push("  Moms (25%): " + fmt(sec.vat) + " SEK");
+    lines.push("  Totalt inkl. moms: " + fmt(sec.total) + " SEK");
+    grandSubtotal += Number(sec.subtotal) || 0;
+  });
+
+  var grandVat = grandSubtotal * 0.25;
+  var grandTotal = grandSubtotal * 1.25;
+  if ((summary.sections || []).length > 1) {
+    lines.push("");
+    lines.push("───────────────────────────────");
+    lines.push(" TOTALT (alla sektioner)");
+    lines.push("───────────────────────────────");
+    lines.push("Summa exkl. moms: " + fmt(grandSubtotal) + " SEK");
+    lines.push("Moms (25%): " + fmt(grandVat) + " SEK");
+    lines.push("Totalt inkl. moms: " + fmt(grandTotal) + " SEK");
+  }
+
+  var message = lines.join("\n");
+
+  // Compact recap string (the "phrase on top of the table") – useful as its own
+  // template variable for short summaries / SMS-style headers.
+  var recapStr = (summary.sections && summary.sections.length)
+    ? summary.sections.map(function (s) {
+        var parts = [];
+        if (s.title) parts.push(s.title);
+        if (s.recap) parts.push(s.recap);
+        return parts.join(" — ");
+      }).join(" | ")
+    : "";
+
   // var disableAttachment = !!config.disableAttachment; // [original – restore when attachments are re-enabled]
   var recaptchaToken = getRecaptchaToken();
   var baseTemplateParams = {
+    // ─── Identity / contact ────────────────────────────────────────────────
     from_name: name,
+    customer_first_name: c.name || "",
+    customer_last_name: c.surname || "",
     customer_email: c.email || "",
     customer_phone: c.phone || "",
+    customer_type: c.customerTypeLabel || "",
+    customer_id_label: idLabel,
+    customer_id_number: c.idNumber || "",
+    customer_address: c.address || "",
+    customer_delivery: c.delivery ? "Ja" : "Nej",
+
+    // ─── Offer recap ───────────────────────────────────────────────────────
+    fence_type: summary.fenceTypeLabel || "",
+    offer_recap: recapStr,
+    products_text: (summary.sections || [])
+      .map(function (s) {
+        return (s.items || [])
+          .map(function (it) {
+            return "- " + it.namn + ": " + fmt(it.antal) + " " + (it.enhet || "") +
+                   " × " + fmt(it.pris) + " SEK = " + fmt(it.total) + " SEK";
+          })
+          .join("\n");
+      })
+      .join("\n"),
+
+    // ─── Money totals (grand totals across all sections) ───────────────────
+    subtotal_excl_vat: fmt(grandSubtotal),
+    vat_amount: fmt(grandVat),
+    total_incl_vat: fmt(grandTotal),
+
+    // ─── Full pre-formatted message (use this single var for the body) ─────
     message: message,
+
     // EmailJS reads this exact key and verifies it server-side against Google.
     "g-recaptcha-response": recaptchaToken
     /* [DEPRECATED – Turnstile params, kept for revert]
@@ -381,7 +480,7 @@ function skickaOfferTillOss() {
   */
 
   sendPromise
-    .then(function (result) {
+    .then(function (/* result */) {
       markOfferSentNow();
       /* [DEPRECATED – Turnstile reset, kept for revert]
       if (typeof window.turnstile !== "undefined" && humanCheckState.widgetId !== null) {
@@ -392,12 +491,49 @@ function skickaOfferTillOss() {
       if (typeof window.grecaptcha !== "undefined" && recaptchaState.widgetId !== null) {
         try { window.grecaptcha.reset(recaptchaState.widgetId); } catch (e) {}
       }
-      cleanup();
-      if (result && result.sentWithoutAttachment) {
-        alert("Offerten skickades utan PDF-bilaga (EmailJS-plan). Klicka på 'Ladda ner PDF' för att spara bilagan lokalt.");
+
+      // ─── Second email: thank-you to the CUSTOMER ───────────────────────
+      // Sent only if a separate customerTemplateId is configured *and* we
+      // have a valid customer email. Failure here is non-fatal: the lead has
+      // already been delivered to us, so we just log and still show success.
+      var customerTplId = String((config.customerTemplateId || "")).trim();
+      var hasCustomerTpl = customerTplId && customerTplId.indexOf("PASTE") < 0;
+      var customerEmail = String((c.email || "")).trim();
+      var customerEmailPromise;
+      if (hasCustomerTpl && validateEmailAddress(customerEmail)) {
+        var customerParams = {
+          to_email: customerEmail,
+          to_name: name,
+          customer_email: customerEmail,
+          customer_first_name: c.name || "",
+          customer_last_name: c.surname || "",
+          from_name: name,
+          // Some EmailJS template setups read reply_to/customer_name instead.
+          reply_to: customerEmail,
+          customer_name: name,
+          // Same recap, in case the dashboard template wants to echo it back.
+          offer_recap: recapStr,
+          subtotal_excl_vat: fmt(grandSubtotal),
+          vat_amount: fmt(grandVat),
+          total_incl_vat: fmt(grandTotal)
+        };
+        customerEmailPromise = emailjs
+          .send(config.serviceId, customerTplId, customerParams, { publicKey: config.publicKey })
+          .catch(function (err2) {
+            console.warn("Customer thank-you email failed (non-fatal):", err2);
+          });
       } else {
-        alert("Tack! Offerten har skickats till oss. Vi återkommer till dig.");
+        customerEmailPromise = Promise.resolve();
       }
+
+      return customerEmailPromise.then(function () {
+        cleanup();
+        alert(
+          "Tack för att du kontaktade oss!\n\n" +
+          "Vi har tagit emot din offertförfrågan och återkommer snart " +
+          "för att gå igenom din beställning."
+        );
+      });
     })
     .catch(function (err) {
       cleanup();

@@ -1610,10 +1610,28 @@
     .villa-gate-row input.villa-gate-qty {
       width: 70px;
     }
-    .invoice-security-wrap {
-      transform: scale(0.92);
-      transform-origin: top center;
-    }
+    /* NOTE: do NOT apply transform: scale() to the reCAPTCHA wrapper.
+       CSS transforms create a new coordinate context that breaks touch
+       event routing into Google's iframe → checkbox becomes unclickable
+       on mobile. */
+  }
+
+  /* reCAPTCHA host: keep it a plain block (no flex) so the iframe gets
+     the natural hit-area Google expects on touch devices. */
+  .invoice-security-wrap {
+    margin: 12px auto 0;
+    max-width: 420px;
+    text-align: center;
+  }
+  #human-check-widget {
+    min-height: 78px;
+    display: block;
+    margin: 0 auto;
+  }
+  /* The reCAPTCHA iframe has a fixed width (~304px). Keep it centered
+     and untransformed so taps land where Google expects them. */
+  #human-check-widget > div {
+    margin: 0 auto;
   }
 
   /* Prevent any errant horizontal scroll on the whole page */

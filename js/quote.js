@@ -87,6 +87,48 @@ function generaPreventivMultiPagina() {
   const customerSection = document.getElementById("customer-data-section");
   if (customerSection) customerSection.classList.add("hidden");
 
+  // Reset structured summary used by the email sender. Each entry describes one
+  // logical fence section (one polylinje, one animal config, or the manual-input
+  // single section). Built up in the branches below as the offer is generated.
+  window.invoiceSummary = {
+    sections: [],
+    fenceTypeLabel: (typeof selectedFenceType !== "undefined" && selectedFenceType === "animal") ? "Djurstängsel" : "Villastängsel",
+    mode: "" // "manual" | "map-1" | "map-multi"
+  };
+
+  function stripHtml(html) {
+    return String(html || "")
+      .replace(/<br\s*\/?>(?=\s|$)/gi, " ")
+      .replace(/<[^>]+>/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function pushSection(title, recapHtml, comp) {
+    if (!comp) return;
+    var items = (comp.items || []).map(function (it) {
+      var antal = Number(it.antal) || 0;
+      var pris = Number(it.pris) || 0;
+      var total = (typeof roundCeil2 === "function") ? roundCeil2(antal * pris) : (antal * pris);
+      return {
+        namn: String(it.namn || ""),
+        antal: antal,
+        enhet: String(it.enhet || ""),
+        pris: pris,
+        total: total
+      };
+    });
+    var subtotal = Number(comp.subtotal) || 0;
+    window.invoiceSummary.sections.push({
+      title: stripHtml(title),
+      recap: stripHtml(recapHtml),
+      items: items,
+      subtotal: subtotal,
+      vat: subtotal * 0.25,
+      total: subtotal * 1.25
+    });
+  }
+
 
   // Helper: crea header HTML identico allo stile attuale (usiamo lo stesso markup)
   function createHeaderHTML(pageIndex, totalPages) {
@@ -434,11 +476,13 @@ function generaPreventivMultiPagina() {
     const meters = metraturaEl ? parseFloat(metraturaEl.value) || 0 : 0;
     const angles = angoliEl ? parseInt(angoliEl.value, 10) || 0 : 0;
 
+    window.invoiceSummary.mode = "manual";
     if (selectedFenceType === "animal") {
       var animalConfigs = typeof getSelectedAnimalConfigs === "function" ? getSelectedAnimalConfigs() : [];
       if (animalConfigs.length === 0) {
         var compDef = generateDJURSTANGSELRows(meters, angles, gateCount);
         var lineParamsDef = "<p>Totallängd: " + roundCeil2(meters).toFixed(2) + " m, Vinklar: " + angles + "</p>";
+        pushSection("Djurstängsel", lineParamsDef, compDef);
         var manualPageHtmlsDef = buildPagesForTable(compDef.rowsHtml, compDef.subtotal || 0, 1, 0, { mapHtml: mapBlockHtml, lineParams: lineParamsDef });
         manualPageHtmlsDef.forEach(function (html) { pages.push({ html: html, subtotal: (compDef.subtotal || 0) * 1.25 }); });
       } else {
@@ -448,6 +492,7 @@ function generaPreventivMultiPagina() {
             : (cfg.electrified ? generateElectrifiedAnimalFenceRows(meters, angles, gateCount) : generateDJURSTANGSELRows(meters, angles, gateCount));
           var lineTitleA = "<h3>" + (cfg.animalLabel || cfg.animalKey) + " (" + (cfg.electrified ? "elektrifierad" : "ej elektrifierad") + ")</h3>";
           var lineParamsA = "<p>Totallängd: " + roundCeil2(meters).toFixed(2) + " m, Vinklar: " + angles + (cfg.electrified && typeof getAnimalWireStolpParams === "function" ? getAnimalWireStolpParams() : "") + "</p>";
+          pushSection(lineTitleA, lineParamsA, compA);
           var opts = { lineTitle: lineTitleA, lineParams: lineParamsA };
           if (idx === 0) opts.mapHtml = mapBlockHtml;
           var manualPageHtmlsA = buildPagesForTable(compA.rowsHtml, compA.subtotal || 0, 1, 0, opts);
@@ -459,6 +504,7 @@ function generaPreventivMultiPagina() {
       var lineParams = selectedFenceType === "villa"
         ? "<p>Totallängd: " + roundCeil2(meters).toFixed(2) + " m, Vinklar: " + angles + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>"
         : "<p>Totallängd: " + roundCeil2(meters).toFixed(2) + " m, Vinklar: " + angles + "</p>";
+      pushSection("Villastängsel", lineParams, comp);
       var manualPageHtmls = buildPagesForTable(comp.rowsHtml, comp.subtotal || 0, 1, 0, { mapHtml: mapBlockHtml, lineParams: lineParams });
       var manualSubtotal = comp && comp.subtotal != null ? comp.subtotal * 1.25 : 0;
       manualPageHtmls.forEach(function (html) { pages.push({ html: html, subtotal: manualSubtotal }); });
@@ -470,11 +516,13 @@ function generaPreventivMultiPagina() {
       const meters = d.length;
       const angles = d.angles;
 
+      window.invoiceSummary.mode = "map-1";
       if (selectedFenceType === "animal") {
         var animalConfigs1 = typeof getSelectedAnimalConfigs === "function" ? getSelectedAnimalConfigs() : [];
         if (animalConfigs1.length === 0) {
           var comp1Def = generateDJURSTANGSELRows(meters, angles, gateCount);
           var lineParams1Def = "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + "</p>";
+          pushSection("Linje 1 – Djurstängsel", lineParams1Def, comp1Def);
           var singlePageHtmls1Def = buildPagesForTable(comp1Def.rowsHtml, comp1Def.subtotal, 1, 0, { mapHtml: mapBlockHtml, lineTitle: "<h3>Linje 1</h3>", lineParams: lineParams1Def });
           singlePageHtmls1Def.forEach(function (html) { pages.push({ html: html, subtotal: comp1Def.subtotal * 1.25 }); });
         } else {
@@ -484,6 +532,7 @@ function generaPreventivMultiPagina() {
               : (cfg.electrified ? generateElectrifiedAnimalFenceRows(meters, angles, gateCount) : generateDJURSTANGSELRows(meters, angles, gateCount));
             var lineTitle1A = "<h3>" + (cfg.animalLabel || cfg.animalKey) + " (" + (cfg.electrified ? "elektrifierad" : "ej elektrifierad") + ")</h3>";
             var lineParams1A = "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + (cfg.electrified ? getAnimalWireStolpParams() : "") + "</p>";
+            pushSection(lineTitle1A, lineParams1A, comp1A);
             var opts1 = { lineTitle: lineTitle1A, lineParams: lineParams1A };
             if (idx === 0) opts1.mapHtml = mapBlockHtml;
             var singlePageHtmls1A = buildPagesForTable(comp1A.rowsHtml, comp1A.subtotal, 1, 0, opts1);
@@ -496,6 +545,7 @@ function generaPreventivMultiPagina() {
         var lineParams1 = selectedFenceType === "villa"
           ? "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>"
           : "<p>Totallängd: " + roundCeil2(d.length).toFixed(2) + " m, Vinklar: " + d.angles + "</p>";
+        pushSection(lineTitle1, lineParams1, comp);
         var singlePageHtmls = buildPagesForTable(comp.rowsHtml, comp.subtotal, 1, 0, { mapHtml: mapBlockHtml, lineTitle: lineTitle1, lineParams: lineParams1 });
         singlePageHtmls.forEach(function (html) { pages.push({ html: html, subtotal: comp.subtotal * 1.25 }); });
       }
@@ -506,12 +556,14 @@ function generaPreventivMultiPagina() {
       var metersTotal = metraturaElMulti ? parseFloat(metraturaElMulti.value) || 0 : 0;
       var anglesTotal = angoliElMulti ? parseInt(angoliElMulti.value, 10) || 0 : 0;
 
+      window.invoiceSummary.mode = "map-multi";
       if (selectedFenceType === "animal") {
         var animalConfigsMulti = typeof getSelectedAnimalConfigs === "function" ? getSelectedAnimalConfigs() : [];
         if (animalConfigsMulti.length === 0) {
           var compMultiDef = generateDJURSTANGSELRows(metersTotal, anglesTotal, gateCount);
           var lineTitleMultiDef = "<h3>Alla linjer (totalt)</h3>";
           var lineParamsMultiDef = "<p>Totallängd: " + roundCeil2(metersTotal).toFixed(2) + " m, Vinklar: " + anglesTotal + "</p>";
+          pushSection(lineTitleMultiDef, lineParamsMultiDef, compMultiDef);
           var multiPageHtmlsDef = buildPagesForTable(compMultiDef.rowsHtml, compMultiDef.subtotal || 0, 1, 0, { mapHtml: mapBlockHtml, lineTitle: lineTitleMultiDef, lineParams: lineParamsMultiDef });
           multiPageHtmlsDef.forEach(function (html) { pages.push({ html: html, subtotal: (compMultiDef.subtotal || 0) * 1.25 }); });
         } else {
@@ -521,6 +573,7 @@ function generaPreventivMultiPagina() {
               : (cfg.electrified ? generateElectrifiedAnimalFenceRows(metersTotal, anglesTotal, gateCount) : generateDJURSTANGSELRows(metersTotal, anglesTotal, gateCount));
             var lineTitleMultiA = "<h3>" + (cfg.animalLabel || cfg.animalKey) + " (" + (cfg.electrified ? "elektrifierad" : "ej elektrifierad") + ") – alla linjer</h3>";
             var lineParamsMultiA = "<p>Totallängd: " + roundCeil2(metersTotal).toFixed(2) + " m, Vinklar: " + anglesTotal + (cfg.electrified ? getAnimalWireStolpParams() : "") + "</p>";
+            pushSection(lineTitleMultiA, lineParamsMultiA, compMultiA);
             var optsMulti = { lineTitle: lineTitleMultiA, lineParams: lineParamsMultiA };
             if (idx === 0) optsMulti.mapHtml = mapBlockHtml;
             var multiPageHtmlsA = buildPagesForTable(compMultiA.rowsHtml, compMultiA.subtotal || 0, 1, 0, optsMulti);
@@ -531,6 +584,7 @@ function generaPreventivMultiPagina() {
         var comp = generateComponentRows(metersTotal, anglesTotal, colorSelect, heightSelect, plintChecked, selectedFenceType, gateCount);
         var lineTitleMulti = "<h3>Alla linjer (totalt)</h3>";
         var lineParamsMulti = "<p>Totallängd: " + roundCeil2(metersTotal).toFixed(2) + " m, Vinklar: " + anglesTotal + ", Färg: " + colorSelect + ", Höjd: " + heightSelect + "</p>";
+        pushSection(lineTitleMulti, lineParamsMulti, comp);
         var multiPageHtmls = buildPagesForTable(comp.rowsHtml, comp.subtotal || 0, 1, 0, { mapHtml: mapBlockHtml, lineTitle: lineTitleMulti, lineParams: lineParamsMulti });
         multiPageHtmls.forEach(function (html) { pages.push({ html: html, subtotal: (comp.subtotal || 0) * 1.25 }); });
       }
@@ -548,8 +602,8 @@ function generaPreventivMultiPagina() {
   });
 
   const pdfBtnHtml = `<div class="invoice-download-wrap"><button type="button" class="pdf-button" onclick="laddaNerPDF()"><i class="fas fa-download" aria-hidden="true"></i> Ladda ner PDF</button><button type="button" class="email-button" onclick="skickaOfferTillOss()"><i class="fas fa-envelope" aria-hidden="true"></i> Skicka till oss</button></div>
-  <div class="invoice-security-wrap" style="margin:12px auto 0;max-width:420px;text-align:center;">
-    <div id="human-check-widget" style="min-height:80px;display:flex;justify-content:center;align-items:flex-start;"></div>
+  <div class="invoice-security-wrap">
+    <div id="human-check-widget"></div>
     <p id="human-check-help" style="font-size:12px;color:#5f6b7a;margin:6px 0 0 0;">Säkerhetskontroll krävs innan vi kan ta emot offerten.</p>
     <button type="button" id="human-check-retry-btn" class="button-secondary" style="margin-top:8px;padding:8px 12px;font-size:13px;">Ladda om säkerhetskontroll</button>
   </div>`;
