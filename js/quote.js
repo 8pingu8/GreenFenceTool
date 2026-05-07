@@ -619,5 +619,8 @@ function generaPreventivMultiPagina() {
   // if (typeof renderHumanCheckWidget === "function") renderHumanCheckWidget();
   if (typeof renderRecaptchaWidget === "function") renderRecaptchaWidget();
 
-
+  // Match the other step transitions: always land at the top of the page so
+  // the user sees the invoice header first, not a mid-page scroll position
+  // inherited from the customer step.
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
