@@ -1313,7 +1313,6 @@
     width: 100%;
     max-width: 210mm;
     min-height: auto;
-    aspect-ratio: 210 / 297;
     box-sizing: border-box;
     background: var(--card-background);
     margin: 0 auto 14px auto;
@@ -1322,8 +1321,14 @@
     border: 1px solid var(--border-color);
     padding: 14px;
   }
+  /* A4-shaped preview only on desktop. On mobile the fixed aspect ratio
+     locks the box to a short calculated height while the table/footer
+     content is much taller, which makes the following content (download
+     buttons, reCAPTCHA) visually overlap with the overflowing page body.
+     PDF export keeps its own `aspect-ratio: auto !important` rule. */
   @media (min-width: 768px) {
     .page {
+      aspect-ratio: 210 / 297;
       padding: 4mm 15mm;
       margin-bottom: 10mm;
     }
