@@ -76,13 +76,43 @@ const PRISER = {
     },
   },
 };
+// Villastaket – grindar (Enkelgrind / Dubbelgrind).
+// Key = "<typ>_<höjd>_<bredd>". Höjd: 1m eller 120m (=1,20 m). Bredd: 1m/2m/3m/4m.
+// Värdet är ett objekt med pris per färg. OG/MG/SV delar samma pris;
+// GL (Galvaniserad) är prissatt separat (oftast lägre, ibland högre).
 const GATE_PRICES = {
-  "enkel_1m_2m":     4601.60,
-  "enkel_120m_2m":   4748.80,
-  "dubbel_1m_2m":    6365.60,
-  "dubbel_1m_4m":    6365.60,
-  "dubbel_120m_2m":  6512.80,
-  "dubbel_120m_4m":  6512.80
+  // ─── Enkelgrind (singel) ───────────────────────────────────────────────
+  "enkel_1m_1m": {
+    Olivgrön: 3198.00, Mörkgrön: 3198.00, Svart: 3198.00, Galvaniserad: 2977.34
+  },
+  "enkel_1m_2m": {
+    Olivgrön: 3526.40, Mörkgrön: 3526.40, Svart: 3526.40, Galvaniserad: 3866.00
+  },
+  "enkel_120m_1m": {
+    Olivgrön: 3276.00, Mörkgrön: 3276.00, Svart: 3276.00, Galvaniserad: 3158.14
+  },
+  "enkel_120m_2m": {
+    Olivgrön: 3771.00, Mörkgrön: 3771.00, Svart: 3771.00, Galvaniserad: 4006.50
+  },
+  // ─── Dubbelgrind ───────────────────────────────────────────────────────
+  "dubbel_1m_2m": {
+    Olivgrön: 3925.50, Mörkgrön: 3925.50, Svart: 3925.50, Galvaniserad: 3794.67
+  },
+  "dubbel_1m_3m": {
+    Olivgrön: 4947.10, Mörkgrön: 4947.10, Svart: 4947.10, Galvaniserad: 4398.84
+  },
+  "dubbel_1m_4m": {
+    Olivgrön: 6299.55, Mörkgrön: 6299.55, Svart: 6299.55, Galvaniserad: 5579.28
+  },
+  "dubbel_120m_2m": {
+    Olivgrön: 4182.75, Mörkgrön: 4182.75, Svart: 4182.75, Galvaniserad: 4010.76
+  },
+  "dubbel_120m_3m": {
+    Olivgrön: 5341.10, Mörkgrön: 5341.10, Svart: 5341.10, Galvaniserad: 4398.84
+  },
+  "dubbel_120m_4m": {
+    Olivgrön: 6747.92, Mörkgrön: 6747.92, Svart: 6747.92, Galvaniserad: 6240.72
+  }
 };
 if (typeof window !== "undefined") {
   window.PRISER = PRISER;

@@ -328,10 +328,29 @@ function generaPreventivMultiPagina() {
 
     if (fenceType === "villa" && gatePrices) {
       const sizeLabels = {
-        "enkel_1m_2m": "1 m × 2 m", "enkel_120m_2m": "1,2 m × 2 m",
-        "dubbel_1m_2m": "1 m × 2 m", "dubbel_1m_4m": "1 m × 4 m",
-        "dubbel_120m_2m": "1,2 m × 2 m", "dubbel_120m_4m": "1,2 m × 4 m"
+        "enkel_1m_1m":    "1 m × 1 m",
+        "enkel_1m_2m":    "1 m × 2 m",
+        "enkel_120m_1m":  "1,2 m × 1 m",
+        "enkel_120m_2m":  "1,2 m × 2 m",
+        "dubbel_1m_2m":   "1 m × 2 m",
+        "dubbel_1m_3m":   "1 m × 3 m",
+        "dubbel_1m_4m":   "1 m × 4 m",
+        "dubbel_120m_2m": "1,2 m × 2 m",
+        "dubbel_120m_3m": "1,2 m × 3 m",
+        "dubbel_120m_4m": "1,2 m × 4 m"
       };
+      // Resolve gate price by key + currently selected fence colour.
+      // Supports both new color-keyed entries ({ Galvaniserad: …, … })
+      // and legacy plain-number entries, just in case.
+      function lookupGatePrice(key) {
+        const entry = gatePrices[key];
+        if (entry == null) return 0;
+        if (typeof entry === "number") return entry;
+        if (entry[farg] != null) return entry[farg];
+        // Fallback: any value in the entry (avoids 0 if colour is unknown).
+        const firstKey = Object.keys(entry)[0];
+        return firstKey ? Number(entry[firstKey]) || 0 : 0;
+      }
       const enkelSizeEl = document.getElementById("enkelgrind-storlek");
       const enkelQtyEl  = document.getElementById("enkelgrind-antal");
       const enkelKey = enkelSizeEl ? enkelSizeEl.value : "";
@@ -341,7 +360,7 @@ function generaPreventivMultiPagina() {
           namn: `Enkelgrind ${sizeLabels[enkelKey] || enkelKey} – ${farg}`,
           antal: enkelQty,
           enhet: "st",
-          pris: gatePrices[enkelKey] != null ? gatePrices[enkelKey] : 0
+          pris: lookupGatePrice(enkelKey)
         });
       }
       const dubbelSizeEl = document.getElementById("dubbelgrind-storlek");
@@ -353,7 +372,7 @@ function generaPreventivMultiPagina() {
           namn: `Dubbelgrind ${sizeLabels[dubbelKey] || dubbelKey} – ${farg}`,
           antal: dubbelQty,
           enhet: "st",
-          pris: gatePrices[dubbelKey] != null ? gatePrices[dubbelKey] : 0
+          pris: lookupGatePrice(dubbelKey)
         });
       }
     }
