@@ -66,13 +66,13 @@ const PRISER = {
       Galvaniserad: 2164.8,
       Mörkgrön: 2556,
       Olivgrön: 2556,
-      Svart: 2876,
+      Svart: 2556,
     },
     "1,20m": {
       Galvaniserad: 2716,
       Mörkgrön: 2876,
       Olivgrön: 2876,
-      Svart: 2905.6,
+      Svart: 2876,
     },
   },
 };
